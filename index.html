@@ -3,175 +3,654 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>유튜브 뉴스 필터버블 분석기</title>
+<title>유튜브 뉴스 필터버블 분석기 (YouTube Filter Bubble Analyzer)</title>
+<!-- Chart.js CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
   :root {
-    --bg: #ffffff; --bg2: #f5f5f3; --bg3: #efefec;
-    --text: #1a1a1a; --text2: #6b6b68; --text3: #9e9e9a;
-    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
-    --radius: 8px; --radius-lg: 12px;
-    --info-bg: #e6f1fb; --info-text: #185FA5;
-    --success-bg: #e1f5ee; --success-text: #0f6e56;
-    --warn-bg: #faeeda; --warn-text: #854f0b;
-    --danger-bg: #fcebeb; --danger-text: #a32d2d;
+    --bg: #ffffff;
+    --bg2: #f8fafc;
+    --bg3: #f1f5f9;
+    --text: #0f172a;
+    --text2: #475569;
+    --text3: #94a3b8;
+    --border: rgba(15, 23, 42, 0.08);
+    --border2: rgba(15, 23, 42, 0.15);
+    --radius: 10px;
+    --radius-lg: 16px;
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: #e0e7ff;
+    
+    --info-bg: #e0f2fe;
+    --info-text: #0369a1;
+    --success-bg: #dcfce7;
+    --success-text: #15803d;
+    --warn-bg: #fef3c7;
+    --warn-text: #b45309;
+    --danger-bg: #fee2e2;
+    --danger-text: #b91c1c;
+    
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   }
+
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #1e1e1c; --bg2: #2a2a28; --bg3: #333330;
-      --text: #f0f0ee; --text2: #a8a8a4; --text3: #6e6e6a;
-      --border: rgba(255,255,255,0.12); --border2: rgba(255,255,255,0.22);
+      --bg: #0f172a;
+      --bg2: #1e293b;
+      --bg3: #0b0f19;
+      --text: #f8fafc;
+      --text2: #cbd5e1;
+      --text3: #64748b;
+      --border: rgba(248, 250, 252, 0.1);
+      --border2: rgba(248, 250, 252, 0.2);
+      
+      --info-bg: #0369a122;
+      --info-text: #38bdf8;
+      --success-bg: #15803d22;
+      --success-text: #4ade80;
+      --warn-bg: #b4530922;
+      --warn-text: #fbbf24;
+      --danger-bg: #b91c1c22;
+      --danger-text: #f87171;
     }
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); font-size: 15px; line-height: 1.6; min-height: 100vh; }
-  .app-wrap { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
-  h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
-  .subtitle { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
-  .card { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 20px; margin-bottom: 16px; }
-  .tab-row { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
-  .tab-btn { padding: 7px 16px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: transparent; cursor: pointer; font-size: 13px; color: var(--text2); transition: all 0.15s; }
-  .tab-btn.active { background: var(--bg2); color: var(--text); font-weight: 500; }
-  .page { display: none; } .page.visible { display: block; }
-  .section-card { display: none; } .section-card.visible { display: block; }
-  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    background: var(--bg3);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .app-wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+
+  header {
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(to right, #4f46e5, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--text2);
+    font-weight: 500;
+  }
+
+  .card {
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .tab-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    background: var(--bg);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    transition: all 0.2s ease;
+  }
+
+  .tab-btn:hover {
+    background: var(--bg2);
+    color: var(--text);
+  }
+
+  .tab-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+  }
+
+  .page { display: none; }
+  .page.visible { display: block; }
+  .section-card { display: none; }
+  .section-card.visible { display: block; }
+
+  label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    display: block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
   input[type=text], select {
-    width: 100%; padding: 8px 10px; border-radius: var(--radius); border: 0.5px solid var(--border2);
-    background: var(--bg); color: var(--text); font-size: 13px; outline: none; transition: border 0.15s;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    transition: all 0.15s ease-in-out;
   }
-  input[type=text]:focus, select:focus { border-color: #534AB7; }
+
+  input[type=text]:focus, select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  }
+
   button {
-    padding: 8px 14px; border-radius: var(--radius); border: 0.5px solid var(--border2);
-    background: transparent; color: var(--text); font-size: 13px; cursor: pointer; transition: all 0.15s;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
-  button:hover { background: var(--bg2); }
-  button:active { transform: scale(0.98); }
-  .btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 500; }
-  .btn-primary:hover { opacity: 0.85; background: var(--text); }
-  .btn-danger { color: var(--danger-text); border-color: var(--danger-text); }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-  .grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
-  .col-header { font-size: 11px; color: var(--text3); padding: 0 3px; }
-  .video-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 5px; margin-bottom: 5px; align-items: center; }
-  @media(max-width:600px){ .video-row { grid-template-columns: 1fr 1fr; } .video-row .v-ch,.video-row .v-kw { grid-column:1/-1; } }
-  .metric-card { background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; text-align: center; }
-  .metric-val { font-size: 22px; font-weight: 600; margin: 3px 0 0; }
-  .metric-label { font-size: 11px; color: var(--text2); }
-  .metric-sub { font-size: 10px; color: var(--text3); margin-top: 2px; line-height: 1.4; }
-  .rs { border-top: 0.5px solid var(--border); padding-top: 16px; margin-top: 16px; }
-  .st { font-size: 13px; font-weight: 500; margin-bottom: 10px; }
-  .bubble-wrap { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
-  .tag-bubble { border-radius: 999px; padding: 4px 12px; font-weight: 500; font-size: 13px; }
-  .index-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .index-label { font-size: 12px; color: var(--text2); width: 110px; flex-shrink: 0; }
-  .index-bar-wrap { flex: 1; background: var(--bg3); border-radius: 5px; overflow: hidden; height: 10px; }
-  .index-bar { height: 100%; border-radius: 5px; transition: width 0.5s; }
-  .index-num { font-size: 12px; font-weight: 600; width: 28px; text-align: right; flex-shrink: 0; }
-  .index-desc { font-size: 10px; color: var(--text3); margin: -2px 0 8px 118px; }
-  .student-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; }
-  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--info-bg); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--info-text); flex-shrink: 0; }
-  .badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 500; }
-  .hint-box { background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; font-size: 12px; color: var(--text2); line-height: 1.8; }
-  .hint-box strong { color: var(--text); }
-  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
-  .saved-badge { font-size: 11px; color: #0f6e56; background: #e1f5ee; border-radius: 999px; padding: 3px 10px; }
-  .empty-msg { font-size: 13px; color: var(--text3); padding: 30px 0; text-align: center; line-height: 2; }
-  .chart-wrap { position: relative; width: 100%; }
-  .legend-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; font-size: 11px; color: var(--text2); }
-  .legend-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; margin-right: 3px; }
-  hr { border: none; border-top: 0.5px solid var(--border); margin: 20px 0; }
-  canvas { display:block; aspect-ratio:1/1; }
+
+  button:hover {
+    background: var(--bg2);
+  }
+
+  button:active {
+    transform: scale(0.97);
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-hover);
+    opacity: 0.95;
+  }
+
+  .btn-danger {
+    color: var(--danger-text);
+    border-color: var(--danger-text);
+    background: var(--danger-bg);
+  }
+
+  .btn-danger:hover {
+    background: rgba(185, 28, 28, 0.2);
+  }
+
+  /* 샘플 인젝터 디자인 */
+  .sample-section {
+    background: var(--bg2);
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 24px;
+  }
+
+  .sample-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  @media (max-width: 768px) {
+    .sample-grid-3 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .sample-btn {
+    padding: 12px 10px;
+    font-size: 11px;
+    line-height: 1.4;
+    border-radius: var(--radius);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 72px;
+  }
+
+  .sample-btn:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary-hover);
+  }
+
+  /* 시청 목록 표 가로 뷰 */
+  .video-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr 1fr auto;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+
+  .col-header {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    padding: 0 4px;
+    text-transform: uppercase;
+  }
+
+  @media(max-width: 680px) {
+    .video-row {
+      grid-template-columns: 1fr;
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: var(--radius);
+      background: var(--bg2);
+      margin-bottom: 12px;
+    }
+    .col-header {
+      display: none;
+    }
+  }
+
+  .metric-card {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: transform 0.2s ease;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .metric-val {
+    font-size: 26px;
+    font-weight: 800;
+    margin-top: 2px;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+  }
+
+  .metric-sub {
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 1px;
+  }
+
+  .rs {
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    margin-top: 20px;
+  }
+
+  .st {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .index-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .index-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  .index-bar-wrap {
+    flex: 1;
+    background: var(--bg3);
+    border-radius: 999px;
+    overflow: hidden;
+    height: 10px;
+  }
+
+  .index-bar {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .index-num {
+    font-size: 12px;
+    font-weight: 700;
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .index-desc {
+    font-size: 11px;
+    color: var(--text3);
+    margin: -4px 0 12px 132px;
+    line-height: 1.4;
+  }
+
+  .student-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--info-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--info-text);
+    flex-shrink: 0;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  .hint-box {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 16px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.8;
+    border: 1px solid var(--border);
+  }
+
+  .hint-box strong {
+    color: var(--text);
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .saved-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--success-text);
+    background: var(--success-bg);
+    border-radius: 999px;
+    padding: 4px 12px;
+  }
+
+  .empty-msg {
+    font-size: 13px;
+    color: var(--text3);
+    padding: 40px 0;
+    text-align: center;
+    line-height: 2;
+  }
+
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  canvas {
+    max-width: 100%;
+  }
+
+  /* 캔버스가 완벽한 정원형을 유지하도록 비율 강제 고정 */
+  .bubble-canvas {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: block;
+    background: var(--bg3);
+    border-radius: var(--radius);
+  }
+
+  /* 구글 시트 주소 설정 섹션 */
+  .api-config-box {
+    background: #fafaf9;
+    border: 1px solid var(--border2);
+    padding: 16px;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .api-config-box {
+      background: #141b24;
+    }
+  }
 </style>
 </head>
 <body>
-<div class="app-wrap">
-  <h1>📺 유튜브 뉴스 필터버블 분석기</h1>
-  <p class="subtitle">내가 보는 뉴스 알고리즘의 편향을 분석해보세요</p>
+<!-- 커스텀 모달 다이얼로그 오버레이 (native alert/confirm 대체용) -->
+<div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.45); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(6px); transition: all 0.2s ease;">
+  <div class="card" style="width:90%; max-width:400px; padding:28px; margin-bottom:0; text-align:center; box-shadow: var(--shadow); border:1px solid var(--border2); background:var(--bg);">
+    <div id="customModalIcon" style="font-size:36px; margin-bottom:12px;">⚠️</div>
+    <div id="customModalText" style="font-size:14px; font-weight:700; margin-bottom:24px; color:var(--text); word-break:keep-all; line-height:1.6;">메시지 내용</div>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button id="customModalCancelBtn" class="tab-btn" style="display:none; padding:10px 18px;">취소</button>
+      <button id="customModalOkBtn" class="btn-primary" style="padding:10px 24px; font-size:13px; border-radius:var(--radius); border:none;">확인</button>
+    </div>
+  </div>
+</div>
 
-  <div class="tab-row">
-    <button class="tab-btn active" id="modeBtn0" onclick="setMode('student')">👤 학생</button>
-    <button class="tab-btn" id="modeBtn1" onclick="setMode('teacher')">👥 교사 (전체 집계)</button>
+<div class="app-wrap">
+  <header>
+    <h1>📺 유튜브 뉴스 필터버블 분석기</h1>
+    <p class="subtitle">내가 시청한 뉴스 알고리즘의 편향 정도와 에코챔버 현상을 자가 진단해보세요</p>
+  </header>
+
+  <!-- 교사/통합 연동용 구글 Apps Script 주소 입력 영역 -->
+  <div class="api-config-box">
+    <div style="font-weight: 700; margin-bottom: 6px; color: var(--primary);">📊 구글 스프레드시트 연동 설정 (교사/학생 공통)</div>
+    <div style="font-size:11px; color:var(--text2); margin-bottom: 10px; line-height:1.4;">
+      구글 Apps Script 웹앱 URL을 입력하시면 실시간으로 학급 전체 데이터가 동기화됩니다. 공란일 경우 브라우저 로컬 저장소(localStorage) 데이터로 단독 동작합니다.
+    </div>
+    <input type="text" id="gasUrlInput" style="padding: 8px 12px;" placeholder="https://script.google.com/macros/s/.../exec" oninput="saveGasUrl(this.value)" />
+  </div>
+
+  <div class="tab-row" style="justify-content: center; margin-bottom: 28px;">
+    <button class="tab-btn active" id="modeBtn0" onclick="setMode('student')" style="font-size: 14px; padding: 12px 24px;">👤 학생 모드</button>
+    <button class="tab-btn" id="modeBtn1" onclick="setMode('teacher')" style="font-size: 14px; padding: 12px 24px;">👥 교사 모드 (전체 학급 통계)</button>
   </div>
 
   <!-- 학생 페이지 -->
   <div id="studentPage" class="page visible">
     <div class="tab-row">
-      <button class="tab-btn active" id="sTab0" onclick="showSTab(0)">✏️ 입력</button>
-      <button class="tab-btn" id="sTab1" onclick="showSTab(1)">1차 결과</button>
-      <button class="tab-btn" id="sTab2" onclick="showSTab(2)">2차 결과</button>
-      <button class="tab-btn" id="sTab3" onclick="showSTab(3)">📊 1차 vs 2차 비교</button>
+      <button class="tab-btn active" id="sTab0" onclick="showSTab(0)">✏️ 데이터 입력</button>
+      <button class="tab-btn" id="sTab1" onclick="showSTab(1)">1차 분석 결과</button>
+      <button class="tab-btn" id="sTab2" onclick="showSTab(2)">2차 분석 결과</button>
+      <button class="tab-btn" id="sTab3" onclick="showSTab(3)">📊 전·후 비교 분석</button>
     </div>
+
+    <!-- 데이터 입력 섹션 -->
     <div id="sInput" class="section-card" style="display:block;">
-      <div class="card">
-        <div style="margin-bottom:14px;">
-          <label>학생 이름</label><input type="text" id="studentName" placeholder="예: 홍길동" />
+      
+      <!-- 샘플 퀵 데이터 인젝터 -->
+      <div class="sample-section">
+        <label style="color:var(--primary); font-weight:800; margin-bottom:4px;">🧪 원클릭 시나리오별 샘플 데이터 주입</label>
+        <div style="font-size:11px; color:var(--text2); line-height:1.4; margin-bottom: 12px;">
+          1차 시기(편향 상태) 및 2차 시기(행동 정화 후) 알고리즘 변화를 테스트할 수 있는 샘플 시나리오를 주입합니다. 학생 이름은 빈칸으로 주입됩니다.
         </div>
-
-        <div style="margin-bottom:14px;">
-          <label>분석 회차</label>
-          <div style="display:flex;gap:8px;margin-top:4px;">
-            <button id="roundBtn1" onclick="selectRound(1)" style="flex:1;padding:9px;font-size:13px;font-weight:500;background:#534AB722;color:#3C3489;border-color:#534AB7;">1차 분석</button>
-            <button id="roundBtn2" onclick="selectRound(2)" style="flex:1;padding:9px;font-size:13px;">2차 분석</button>
+        
+        <!-- 1차 시기 (개선 전) 시나리오 그룹 -->
+        <div style="font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+          <span style="background: var(--danger-bg); color: var(--danger-text); padding: 1px 6px; border-radius: 4px; font-size: 10px;">1차 시기</span> 편향 알고리즘 진단 시나리오 (1차 분석 전용)
+        </div>
+        <div class="sample-grid-3" style="margin-bottom: 18px;">
+          <div class="sample-btn" onclick="injectSample('echo-chamber')">
+            <strong>🔴 정치 에코챔버형</strong>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">정치 평론에 치우친 고위험 시청</span>
           </div>
-          <div id="roundHint" style="font-size:11px;color:var(--text3);margin-top:6px;">처음 분석하는 경우 1차를 선택하세요.</div>
+          <div class="sample-btn" onclick="injectSample('entertainment')">
+            <strong>🎬 대중문화·엔터형</strong>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">연예 및 미디어 뉴스 과다 시청</span>
+          </div>
+          <div class="sample-btn" onclick="injectSample('it-dopamine')">
+            <strong>🔵 IT/과학 치우침형</strong>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">IT 신기술 및 정보만 연속 탐닉</span>
+          </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:5px;margin-bottom:6px;">
+        <!-- 2차 시기 (개선 후) 시나리오 그룹 -->
+        <div style="font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+          <span style="background: var(--success-bg); color: var(--success-text); padding: 1px 6px; border-radius: 4px; font-size: 10px;">2차 시기</span> 알고리즘 정화 및 극복 시나리오 (2차 분석 전용)
+        </div>
+        <div class="sample-grid-3">
+          <div class="sample-btn" onclick="injectSample('diversified-escape')">
+            <strong>🟡 알고리즘 다변화 극복형</strong>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">기존 정치 위주에서 IT, 대중문화 융합 시청</span>
+          </div>
+          <div class="sample-btn" onclick="injectSample('public-docu')">
+            <strong>🟣 공영·시사교양 정화형</strong>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">공영 뉴스 보도와 다큐 위주 고품격 세팅</span>
+          </div>
+          <div class="sample-btn" onclick="injectSample('balanced')">
+            <strong>🟢 다중 균형 시청형</strong>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">정치/경제/사회/문화 고른 분산 분배</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="margin-bottom:18px;">
+          <label>학생 이름</label>
+          <input type="text" id="studentName" placeholder="본인의 이름을 입력하세요 (예: 홍길동)" />
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <label>분석 시점 선택</label>
+          <div style="display:flex; gap:10px; margin-top:6px;">
+            <button id="roundBtn1" onclick="selectRound(1)" style="flex:1; padding:11px; font-size:13px; font-weight:600; background:rgba(79, 70, 229, 0.08); color:var(--primary); border-color:var(--primary);">1차 분석 (개선 전)</button>
+            <button id="roundBtn2" onclick="selectRound(2)" style="flex:1; padding:11px; font-size:13px; font-weight:600;">2차 분석 (행동 정화 후)</button>
+          </div>
+          <div id="roundHint" style="font-size:11px; color:var(--text3); margin-top:6px;">평소 알고리즘 그대로 편향을 진단할 경우 '1차 분석'을 선택해 주세요.</div>
+        </div>
+
+        <div style="margin-bottom: 8px;">
+          <label>📺 최근 시청한 뉴스 목록 구성</label>
+        </div>
+        <div class="video-row" style="margin-bottom:8px;">
           <span class="col-header">언론사 채널명</span>
-          <span class="col-header">카테고리</span>
+          <span class="col-header">대카테고리</span>
           <span class="col-header">세부 카테고리</span>
-          <span class="col-header">키워드 (선택)</span>
+          <span class="col-header">핵심 키워드 (선택)</span>
           <span></span>
         </div>
         <div id="videoList"></div>
-        <button onclick="addRow()" style="width:100%;margin-top:6px;padding:9px;">+ 뉴스 추가</button>
+        <button onclick="addRow()" style="width:100%; margin-top:10px; padding:11px; background:var(--bg2);">➕ 새로운 뉴스 행 추가</button>
       </div>
 
-      <div class="hint-box" style="margin-bottom:14px;">
-        <strong>세부 카테고리 안내</strong><br>
-        <span style="color:#534AB7;font-weight:600;">정치</span> 청와대·국회/정당·북한·행정·국방/외교·정치일반 &nbsp;
-        <span style="color:#1D9E75;font-weight:600;">경제</span> 금융·증권·산업/재계·중기/벤처·부동산·글로벌·경제·생활경제·경제일반<br>
-        <span style="color:#D85A30;font-weight:600;">사회</span> 사건사고·교육·노동·언론·환경·인권/복지·식품/의료·지역·인물·사회일반 &nbsp;
-        <span style="color:#BA7517;font-weight:600;">생활/문화</span> 건강정보·자동차·도로/교통·여행/레저·음식/맛집·패션/뷰티·공연/전시·책·종교·날씨·생활·문화일반<br>
-        <span style="color:#185FA5;font-weight:600;">IT/과학</span> 모바일·인터넷/SNS·통신/뉴미디어·IT일반·보안/해킹·컴퓨터·게임/리뷰·과학일반 &nbsp;
-        <span style="color:#D4537E;font-weight:600;">엔터테인먼트</span> 드라마·영화·음악·연예<br>
-        <span style="color:#639922;font-weight:600;">스포츠</span> 야구·축구·농구·배구·골프·일반스포츠·e스포츠 &nbsp;
-        <span style="color:#888780;font-weight:600;">세계</span> 아시아/호주·미국/중남미·유럽·중동/아프리카·세계일반
+      <div class="hint-box" style="margin-bottom:20px;">
+        <strong>📋 세부 카테고리 분류 참고 가이드</strong><br>
+        <span style="color:#534AB7; font-weight:700;">정치</span> 청와대·국회/정당·북한·행정·국방/외교·정치일반 <br>
+        <span style="color:#1D9E75; font-weight:700;">경제</span> 금융·증권·산업/재계·중기/벤처·부동산·글로벌·경제일반<br>
+        <span style="color:#D85A30; font-weight:700;">사회</span> 사건사고·교육·노동·언론·환경·인권/복지·식품/의료·사회일반<br>
+        <span style="color:#BA7517; font-weight:700;">생활/문화</span> 건강정보·자동차·여행/레저·음식·종교·날씨·생활문화일반<br>
+        <span style="color:#185FA5; font-weight:700;">IT/과학</span> 모바일·인터넷/SNS·통신/뉴미디어·해킹/보안·과학일반<br>
+        <span style="color:#D4537E; font-weight:700;">엔터테인먼트</span> 드라마·영화·음악·연예소식 &nbsp;&nbsp;
+        <span style="color:#639922; font-weight:700;">스포츠</span> 야구·축구·e스포츠·일반스포츠<br>
+        <span style="color:#888780; font-weight:700;">세계</span> 아시아/호주·미국/중남미·유럽·중동/아프리카·국제일반
       </div>
 
-      <button class="btn-primary" onclick="analyzeAndSave()" style="width:100%;padding:12px;font-size:15px;">
-        💾 분석 후 저장하기
+      <button id="saveMainBtn" class="btn-primary" onclick="analyzeAndSave()" style="width:100%; padding:14px; font-size:15px; border-radius: var(--radius-lg);">
+        💾 시청 데이터 분석 및 저장하기
       </button>
     </div>
 
+    <!-- 결과 탭 및 시각화 구역 -->
     <div id="sResult1" class="section-card">
       <div id="sResult1Content"></div>
-      <button onclick="showSTab(0)" style="margin-top:16px;">← 다시 입력</button>
+      <button onclick="showSTab(0)" style="margin-top:16px;">← 데이터 추가 입력하기</button>
     </div>
     <div id="sResult2" class="section-card">
       <div id="sResult2Content"></div>
-      <button onclick="showSTab(0)" style="margin-top:16px;">← 다시 입력</button>
+      <button onclick="showSTab(0)" style="margin-top:16px;">← 데이터 추가 입력하기</button>
     </div>
     <div id="sCompare" class="section-card">
       <div id="sCompareContent"></div>
-      <button onclick="showSTab(0)" style="margin-top:16px;">← 다시 입력</button>
+      <button onclick="showSTab(0)" style="margin-top:16px;">← 데이터 추가 입력하기</button>
     </div>
   </div>
 
-  <!-- 교사 페이지 -->
+  <!-- 교사 페이지 (전체 학급 집계) -->
   <div id="teacherPage" class="page">
     <div class="top-bar">
-      <div style="font-size:13px;color:var(--text2);">저장된 학생 데이터를 불러와 학급 전체를 분석합니다.</div>
-      <div style="display:flex;gap:6px;">
-        <button onclick="loadTeacher()">🔄 새로고침</button>
-        <button class="btn-danger" onclick="clearAll()">🗑 전체 초기화</button>
+      <div style="font-size:13px; color:var(--text2); font-weight: 500;">자가 진단을 저장한 전체 학생들의 시각화 지표를 일괄적으로 확인합니다.</div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="loadTeacher()" style="background:var(--bg2);">🔄 데이터 동기화</button>
+        <button class="btn-danger" onclick="clearAll()">🗑 전체 데이터 리셋</button>
       </div>
     </div>
     <div class="tab-row">
-      <button class="tab-btn active" id="tTab0" onclick="showTTab(0)">1차 결과</button>
-      <button class="tab-btn" id="tTab1" onclick="showTTab(1)">2차 결과</button>
-      <button class="tab-btn" id="tTab2" onclick="showTTab(2)">📊 1차 vs 2차 비교</button>
+      <button class="tab-btn active" id="tTab0" onclick="showTTab(0)">👥 학급 1차 종합 결과</button>
+      <button class="tab-btn" id="tTab1" onclick="showTTab(1)">👥 학급 2차 종합 결과</button>
+      <button class="tab-btn" id="tTab2" onclick="showTTab(2)">📊 전·후 통계 비교 대조</button>
     </div>
     <div id="tContent0"></div>
     <div id="tContent1" style="display:none;"></div>
@@ -180,612 +659,963 @@
 </div>
 
 <script>
-const TREE={
-  '정치':['청와대','국회/정당','북한','행정','국방/외교','정치일반'],
-  '경제':['금융','증권','산업/재계','중기/벤처','부동산','글로벌','경제','생활경제','경제일반'],
-  '사회':['사건사고','교육','노동','언론','환경','인권/복지','식품/의료','지역','인물','사회일반'],
-  '생활/문화':['건강정보','자동차','도로/교통','여행/레저','음식/맛집','패션/뷰티','공연/전시','책','종교','날씨','생활','문화일반'],
-  'IT/과학':['모바일','인터넷/SNS','통신/뉴미디어','IT일반','보안/해킹','컴퓨터','게임/리뷰','과학일반'],
-  '엔터테인먼트':['드라마','영화','음악','연예'],
-  '스포츠':['야구','축구','농구','배구','골프','일반스포츠','e스포츠'],
-  '세계':['아시아/호주','미국/중남미','유럽','중동/아프리카','세계일반'],
+const TREE = {
+  '정치': ['청와대', '국회/정당', '북한', '행정', '국방/외교', '정치일반'],
+  '경제': ['금융', '증권', '산업/재계', '중기/벤처', '부동산', '글로벌', '경제일반'],
+  '사회': ['사건사고', '교육', '노동', '언론', '환경', '인권/복지', '식품/의료', '사회일반'],
+  '생활/문화': ['건강정보', '자동차', '여행/레저', '음식/맛집', '패션/뷰티', '공연/전시', '종교', '날씨', '생활문화일반'],
+  'IT/과학': ['모바일', '인터넷/SNS', '통신/뉴미디어', '보안/해킹', '컴퓨터', '과학일반'],
+  '엔터테인먼트': ['드라마', '영화', '음악', '연예소식'],
+  '스포츠': ['야구', '축구', '농구', '골프', '일반스포츠', 'e스포츠'],
+  '세계': ['아시아/호주', '미국/중남미', '유럽', '중동/아프리카', '국제일반']
 };
-const CAT_COLORS={'정치':'#534AB7','경제':'#1D9E75','사회':'#D85A30','생활/문화':'#BA7517','IT/과학':'#185FA5','엔터테인먼트':'#D4537E','스포츠':'#639922','세계':'#888780'};
-const PRESS_PALETTE=['#534AB7','#1D9E75','#D85A30','#185FA5','#BA7517','#D4537E','#888780','#639922','#0F6E56','#993C1D'];
-const MAJORS=Object.keys(TREE);
-const TOTAL_SUBS=Object.values(TREE).reduce((a,v)=>a+v.length,0);
-const STORAGE_KEY='filterbubble_students';
 
-let rows=[];
-let tCharts=[];
+const CAT_COLORS = {
+  '정치': '#534AB7',
+  '경제': '#1D9E75',
+  '사회': '#D85A30',
+  '생활/문화': '#BA7517',
+  'IT/과학': '#185FA5',
+  '엔터테인먼트': '#D4537E',
+  '스포츠': '#639922',
+  '세계': '#888780'
+};
 
-/* ── 행 관리 ── */
-function addRow(ch='',major=MAJORS[0],sub=TREE[MAJORS[0]][0],kw=''){
-  const id=Date.now()+Math.random();
-  rows.push({id,ch,major,sub,kw});renderRows();
+const MAJORS = Object.keys(TREE);
+const TOTAL_SUBS = Object.values(TREE).reduce((a, v) => a + v.length, 0);
+const STORAGE_KEY = 'filterbubble_students';
+const GAS_URL_KEY = 'filterbubble_gas_url';
+
+let rows = [];
+let tCharts = [];
+let cloudRecords = []; // 구글 클라우드에서 로드한 백업 데이터 리스트
+
+// 구글 Apps Script 연동 데이터 입출력 처리기
+function saveGasUrl(url) {
+  localStorage.setItem(GAS_URL_KEY, url.trim());
 }
-function removeRow(id){rows=rows.filter(r=>r.id!==id);renderRows();}
-function renderRows(){
-  document.getElementById('videoList').innerHTML=rows.map(r=>`
+
+function getGasUrl() {
+  return localStorage.getItem(GAS_URL_KEY) || "";
+}
+
+// 초기화 시 기존에 저장된 URL을 입력 필드에 바인딩
+document.addEventListener("DOMContentLoaded", () => {
+  const savedUrl = getGasUrl();
+  if (savedUrl) {
+    document.getElementById("gasUrlInput").value = savedUrl;
+  }
+});
+
+// 커스텀 다이얼로그 모달 제어 함수 (alert, confirm 원천 금지 우회)
+function myAlert(msg, icon = '⚠️') {
+  document.getElementById('customModalIcon').textContent = icon;
+  document.getElementById('customModalText').textContent = msg;
+  document.getElementById('customModalCancelBtn').style.display = 'none';
+  const modal = document.getElementById('customModal');
+  modal.style.display = 'flex';
+  
+  return new Promise((resolve) => {
+    document.getElementById('customModalOkBtn').onclick = function() {
+      modal.style.display = 'none';
+      resolve(true);
+    };
+  });
+}
+
+function myConfirm(msg, icon = '❓') {
+  document.getElementById('customModalIcon').textContent = icon;
+  document.getElementById('customModalText').textContent = msg;
+  document.getElementById('customModalCancelBtn').style.display = 'inline-flex';
+  const modal = document.getElementById('customModal');
+  modal.style.display = 'flex';
+  
+  return new Promise((resolve) => {
+    document.getElementById('customModalOkBtn').onclick = function() {
+      modal.style.display = 'none';
+      resolve(true);
+    };
+    document.getElementById('customModalCancelBtn').onclick = function() {
+      modal.style.display = 'none';
+      resolve(false);
+    };
+  });
+}
+
+function addRow(ch = '', major = MAJORS[0], sub = TREE[MAJORS[0]][0], kw = '') {
+  const id = Date.now() + Math.random();
+  rows.push({ id, ch, major, sub, kw });
+  renderRows();
+}
+
+function removeRow(id) {
+  rows = rows.filter(r => r.id !== id);
+  renderRows();
+}
+
+function renderRows() {
+  document.getElementById('videoList').innerHTML = rows.map(r => `
     <div class="video-row">
-      <input class="v-ch" type="text" value="${escHtml(r.ch)}" placeholder="예: KBS뉴스" oninput="updateRow(${r.id},'ch',this.value)" />
-      <select onchange="updateMajor(${r.id},this.value)">${MAJORS.map(m=>`<option value="${m}"${m===r.major?' selected':''}>${m}</option>`).join('')}</select>
-      <select id="sub_${r.id}" onchange="updateRow(${r.id},'sub',this.value)">${TREE[r.major].map(s=>`<option value="${s}"${s===r.sub?' selected':''}>${s}</option>`).join('')}</select>
-      <input class="v-kw" type="text" value="${escHtml(r.kw)}" placeholder="예: 탄핵, 금리" oninput="updateRow(${r.id},'kw',this.value)" />
-      <button onclick="removeRow(${r.id})" title="삭제" style="padding:6px 10px;">✕</button>
+      <input class="v-ch" type="text" value="${escHtml(r.ch)}" placeholder="예: SBS 뉴스" oninput="updateRow(${r.id},'ch',this.value)" />
+      <select onchange="updateMajor(${r.id},this.value)">
+        ${MAJORS.map(m => `<option value="${m}"${m === r.major ? ' selected' : ''}>${m}</option>`).join('')}
+      </select>
+      <select id="sub_${r.id}" onchange="updateRow(${r.id},'sub',this.value)">
+        ${TREE[r.major].map(s => `<option value="${s}"${s === r.sub ? ' selected' : ''}>${s}</option>`).join('')}
+      </select>
+      <input class="v-kw" type="text" value="${escHtml(r.kw)}" placeholder="예: 선거, 주식 (쉼표 구분)" oninput="updateRow(${r.id},'kw',this.value)" />
+      <button onclick="removeRow(${r.id})" title="행 삭제" style="padding:10px 14px; border-color:var(--danger-text); color:var(--danger-text);">✕</button>
     </div>`).join('');
 }
-function updateRow(id,field,val){const r=rows.find(x=>x.id===id);if(r)r[field]=val;}
-function updateMajor(id,val){
-  const r=rows.find(x=>x.id===id);if(!r)return;
-  r.major=val;r.sub=TREE[val][0];
-  const s=document.getElementById('sub_'+id);
-  if(s)s.innerHTML=TREE[val].map(v=>`<option value="${v}">${v}</option>`).join('');
-}
-function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 
-/* ── 모드 전환 ── */
-function setMode(m){
-  document.getElementById('studentPage').classList.toggle('visible',m==='student');
-  document.getElementById('teacherPage').classList.toggle('visible',m==='teacher');
-  document.getElementById('modeBtn0').classList.toggle('active',m==='student');
-  document.getElementById('modeBtn1').classList.toggle('active',m==='teacher');
-  if(m==='teacher'){
+function updateRow(id, field, val) {
+  const r = rows.find(x => x.id === id);
+  if (r) r[field] = val;
+}
+
+function updateMajor(id, val) {
+  const r = rows.find(x => x.id === id);
+  if (!r) return;
+  r.major = val;
+  r.sub = TREE[val][0];
+  const s = document.getElementById('sub_' + id);
+  if (s) s.innerHTML = TREE[val].map(v => `<option value="${v}">${v}</option>`).join('');
+}
+
+function escHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function setMode(m) {
+  document.getElementById('studentPage').classList.toggle('visible', m === 'student');
+  document.getElementById('teacherPage').classList.toggle('visible', m === 'teacher');
+  document.getElementById('modeBtn0').classList.toggle('active', m === 'student');
+  document.getElementById('modeBtn1').classList.toggle('active', m === 'teacher');
+  if (m === 'teacher') {
     showSTab(0);
     loadTeacher();
   }
 }
 
-let currentRound=1;
+let currentRound = 1;
 
-function selectRound(r){
-  currentRound=r;
-  document.getElementById('roundBtn1').style.cssText=`flex:1;padding:9px;font-size:13px;font-weight:${r===1?'500':'400'};background:${r===1?'#534AB722':'transparent'};color:${r===1?'#3C3489':'var(--text2)'};border-color:${r===1?'#534AB7':'var(--border2)'};border-radius:var(--radius);border-style:solid;cursor:pointer;`;
-  document.getElementById('roundBtn2').style.cssText=`flex:1;padding:9px;font-size:13px;font-weight:${r===2?'500':'400'};background:${r===2?'#1D9E7522':'transparent'};color:${r===2?'#085041':'var(--text2)'};border-color:${r===2?'#1D9E75':'var(--border2)'};border-radius:var(--radius);border-style:solid;cursor:pointer;`;
-  document.getElementById('roundHint').textContent=r===1?'처음 분석하는 경우 1차를 선택하세요.':'필터버블을 약화시킨 후 2차 분석을 진행하세요.';
+function selectRound(r) {
+  currentRound = r;
+  document.getElementById('roundBtn1').style.cssText = `flex:1; padding:11px; font-size:13px; font-weight:600; border-radius:var(--radius); border-style:solid; cursor:pointer; background:${r === 1 ? 'rgba(79, 70, 229, 0.08)' : 'var(--bg)'}; color:${r === 1 ? 'var(--primary)' : 'var(--text2)'}; border-color:${r === 1 ? 'var(--primary)' : 'var(--border2)'};`;
+  document.getElementById('roundBtn2').style.cssText = `flex:1; padding:11px; font-size:13px; font-weight:600; border-radius:var(--radius); border-style:solid; cursor:pointer; background:${r === 2 ? 'rgba(29, 158, 117, 0.08)' : 'var(--bg)'}; color:${r === 2 ? '#0f6e56' : 'var(--text2)'}; border-color:${r === 2 ? '#1D9E75' : 'var(--border2)'};`;
+  document.getElementById('roundHint').textContent = r === 1 ? '평소 알고리즘 그대로 편향을 진단할 경우 1차를 선택하세요.' : '구독 취소 또는 검색 교란 운동을 마친 최근의 상태를 측정하려면 2차를 선택하세요.';
 }
 
-function showSTab(i){
-  ['sInput','sResult1','sResult2','sCompare'].forEach((id,idx)=>{
-    const el=document.getElementById(id);
-    if(el)el.style.display=idx===i?'block':'none';
+function showSTab(i) {
+  ['sInput', 'sResult1', 'sResult2', 'sCompare'].forEach((id, idx) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = idx === i ? 'block' : 'none';
   });
-  for(let t=0;t<4;t++){
-    const btn=document.getElementById('sTab'+t);
-    if(btn)btn.classList.toggle('active',t===i);
+  for (let t = 0; t < 4; t++) {
+    const btn = document.getElementById('sTab' + t);
+    if (btn) btn.classList.toggle('active', t === i);
   }
 }
 
-/* ── 점수 계산 ── */
-function calcIdx(count,totalCats){
-  const vals=Object.values(count);
-  if(!vals.length)return 0;
-  const total=vals.reduce((a,v)=>a+v,0);
-  const topRatio=Math.max(...vals)/total;
-  const unique=vals.length;
-  return Math.round(topRatio*60+(1-unique/totalCats)*40);
-}
-function barCol(i){return i>60?'#D85A30':i>35?'#BA7517':'#1D9E75';}
+// 가상 샘플 데이터 자동 주입 핸들러 (이름 빈칸 고정, 1차 3종 / 2차 2종 구성)
+function injectSample(type) {
+  let sampleData = [];
 
-function computeScores(rows){
-  const majorCount={},subCount={},kwCount={},pressCount={};
-  rows.forEach(r=>{
-    majorCount[r.major]=(majorCount[r.major]||0)+1;
-    subCount[r.sub]=(subCount[r.sub]||0)+1;
-    if(r.ch&&r.ch.trim())pressCount[r.ch.trim()]=(pressCount[r.ch.trim()]||0)+1;
-    if(r.kw&&r.kw.trim())
-      r.kw.split(/[,，\s]+/).map(k=>k.trim()).filter(Boolean).forEach(k=>{kwCount[k]=(kwCount[k]||0)+1;});
+  // 학생 이름은 수동 입력을 유도하기 위해 빈칸 처리
+  document.getElementById('studentName').value = '';
+
+  if (type === 'echo-chamber') {
+    // 1차 정치 에코챔버형
+    sampleData = [
+      { ch: '가로세로연구소', major: '정치', sub: '국회/정당', kw: '선거, 정당, 국회' },
+      { ch: '김어준의 겸손은힘들다 뉴스공장', major: '정치', sub: '국회/정당', kw: '선거, 탄핵, 대표' },
+      { ch: '신의한수', major: '정치', sub: '정치일반', kw: '폭로, 정당, 윤석열' },
+      { ch: 'KBS 뉴스', major: '정치', sub: '국방/외교', kw: '외교, 순방, 미국' },
+      { ch: '새날', major: '정치', sub: '정치일반', kw: '탄핵, 수사, 이재명' }
+    ];
+    selectRound(1);
+  } else if (type === 'entertainment') {
+    // 1차 대중문화/엔터형
+    sampleData = [
+      { ch: '넷플릭스 코리아', major: '엔터테인먼트', sub: '영화', kw: '영화, 시리즈, 개봉작' },
+      { ch: '디즈니 플러스', major: '엔터테인먼트', sub: '드라마', kw: '정주행, 예고편, 독점' },
+      { ch: '디스패치 Star', major: '엔터테인먼트', sub: '연예소식', kw: '열애설, 촬영장, 비하인드' },
+      { ch: 'Mnet K-POP', major: '엔터테인먼트', sub: '음악', kw: '뮤직비디오, 아이돌, 직캠' },
+      { ch: '영화 분석관', major: '엔터테인먼트', sub: '영화', kw: '결말해석, 영화추천, 스포일러' }
+    ];
+    selectRound(1);
+  } else if (type === 'it-dopamine') {
+    // 1차 IT/과학형
+    sampleData = [
+      { ch: '3프로TV', major: '경제', sub: '산업/재계', kw: '엔비디아, 반도체' },
+      { ch: '테크튜브', major: 'IT/과학', sub: '모바일', kw: '스마트폰, 갤럭시, 애플' },
+      { ch: 'itSub잇섭', major: 'IT/과학', sub: '인터넷/SNS', kw: '인공지능, ChatGPT, AI' },
+      { ch: '사피엔스 스튜디오', major: 'IT/과학', sub: '과학일반', kw: '양자역학, 물리, 과학' },
+      { ch: '디에디트 THE EDIT', major: 'IT/과학', sub: '컴퓨터', kw: '노트북, 맥북, 가젯' }
+    ];
+    selectRound(1);
+  } else if (type === 'diversified-escape') {
+    // 2차 알고리즘 다변화 극복형 (정치 + IT + 대중문화 융합 시청)
+    sampleData = [
+      { ch: '김어준의 겸손은힘들다 뉴스공장', major: '정치', sub: '국회/정당', kw: '선거, 탄핵' },
+      { ch: 'itSub잇섭', major: 'IT/과학', sub: '인터넷/SNS', kw: '인공지능, AI, 스마트기기' },
+      { ch: '넷플릭스 코리아', major: '엔터테인먼트', sub: '영화', kw: '정주행, 영화추천' },
+      { ch: 'SBS 뉴스', major: '사회', sub: '환경', kw: '기후위기, 탄소배출' },
+      { ch: '슈카월드', major: '생활/문화', sub: '생활문화일반', kw: '트렌드, 문화현상' }
+    ];
+    selectRound(2);
+  } else if (type === 'public-docu') {
+    // 2차 공영/시사교양 정화형
+    sampleData = [
+      { ch: 'KBS 뉴스', major: '정치', sub: '행정', kw: '정부, 뉴스, 정책' },
+      { ch: 'EBS 다큐', major: '사회', sub: '교육', kw: '다큐멘터리, 교육, 역사' },
+      { ch: 'YTN', major: '사회', sub: '언론', kw: '뉴스, 보도, 속보' },
+      { ch: '사피엔스 스튜디오', major: 'IT/과학', sub: '과학일반', kw: '인문학, 물리, 우주' },
+      { ch: '국립중앙박물관', major: '생활/문화', sub: '생활문화일반', kw: '역사, 전시, 문화재' }
+    ];
+    selectRound(2);
+  } else if (type === 'balanced') {
+    // 2차 다중 균형 시청형 (맨 마지막에 위치)
+    sampleData = [
+      { ch: 'KBS 뉴스', major: '정치', sub: '행정', kw: '정책, 정부' },
+      { ch: '3프로TV', major: '경제', sub: '금융', kw: '금리, 주식, 환율' },
+      { ch: 'SBS 뉴스', major: '사회', sub: '환경', kw: '기후변화, 탄소배출' },
+      { ch: '슈카월드', major: '생활/문화', sub: '생활문화일반', kw: '트렌드, 문화' },
+      { ch: '지식해적단', major: '세계', sub: '국제일반', kw: '역사, 세계사' }
+    ];
+    selectRound(2);
+  }
+
+  // 리스트 초기화 후 주입
+  rows = [];
+  sampleData.forEach(d => {
+    const id = Date.now() + Math.random();
+    rows.push({
+      id: id,
+      ch: d.ch,
+      major: d.major,
+      sub: d.sub,
+      kw: d.kw
+    });
   });
-  const iMaj=calcIdx(majorCount,MAJORS.length);
-  const iSub=calcIdx(subCount,TOTAL_SUBS);
-  const iKw=Object.keys(kwCount).length?calcIdx(kwCount,Math.max(Object.keys(kwCount).length*2,20)):null;
-  const iPrs=Object.keys(pressCount).length?calcIdx(pressCount,Math.max(Object.keys(pressCount).length*2,10)):null;
-  const scores=[iMaj,iSub,iKw,iPrs].filter(v=>v!==null);
-  const iTotal=Math.round(scores.reduce((a,v)=>a+v,0)/scores.length);
-  return{majorCount,subCount,kwCount,pressCount,iMaj,iSub,iKw,iPrs,iTotal};
+  renderRows();
 }
 
-/* ── HTML 조각 ── */
-function idxRowHTML(label,idx,desc){
-  if(idx===null)return'';
-  const col=barCol(idx);
-  return`<div class="index-row">
+function calcIdx(count, totalCats) {
+  const vals = Object.values(count);
+  if (!vals.length) return 0;
+  const total = vals.reduce((a, v) => a + v, 0);
+  const topRatio = Math.max(...vals) / total;
+  const unique = vals.length;
+  return Math.round(topRatio * 60 + (1 - unique / totalCats) * 40);
+}
+
+function barCol(i) {
+  return i > 60 ? 'var(--danger-text)' : i > 35 ? 'var(--warn-text)' : 'var(--success-text)';
+}
+
+function computeScores(rows) {
+  const majorCount = {}, subCount = {}, kwCount = {}, pressCount = {};
+  rows.forEach(r => {
+    majorCount[r.major] = (majorCount[r.major] || 0) + 1;
+    subCount[r.sub] = (subCount[r.sub] || 0) + 1;
+    if (r.ch && r.ch.trim()) pressCount[r.ch.trim()] = (pressCount[r.ch.trim()] || 0) + 1;
+    if (r.kw && r.kw.trim()) {
+      r.kw.split(/[,，\s]+/).map(k => k.trim()).filter(Boolean).forEach(k => {
+        kwCount[k] = (kwCount[k] || 0) + 1;
+      });
+    }
+  });
+  const iMaj = calcIdx(majorCount, MAJORS.length);
+  const iSub = calcIdx(subCount, TOTAL_SUBS);
+  const iKw = Object.keys(kwCount).length ? calcIdx(kwCount, Math.max(Object.keys(kwCount).length * 2, 20)) : null;
+  const iPrs = Object.keys(pressCount).length ? calcIdx(pressCount, Math.max(Object.keys(pressCount).length * 2, 10)) : null;
+  const scores = [iMaj, iSub, iKw, iPrs].filter(v => v !== null);
+  const iTotal = Math.round(scores.reduce((a, v) => a + v, 0) / scores.length);
+  return { majorCount, subCount, kwCount, pressCount, iMaj, iSub, iKw, iPrs, iTotal };
+}
+
+function idxRowHTML(label, idx, desc) {
+  if (idx === null) return '';
+  const col = barCol(idx);
+  return `
+  <div class="index-row">
     <div class="index-label">${label}</div>
-    <div class="index-bar-wrap"><div class="index-bar" style="width:${idx}%;background:${col};"></div></div>
+    <div class="index-bar-wrap"><div class="index-bar" style="width:${idx}%; background:${col};"></div></div>
     <div class="index-num" style="color:${col};">${idx}</div>
-  </div><div class="index-desc">${desc}</div>`;
+  </div>
+  <div class="index-desc">${desc}</div>`;
 }
-function renderResultHTML(sc,rows,prefix,otherSc,teacherMode){
-  const total=rows.length;
-  const majors=Object.entries(sc.majorCount).sort((a,b)=>b[1]-a[1]);
-  const subs=Object.entries(sc.subCount).sort((a,b)=>b[1]-a[1]);
-  const kws=Object.entries(sc.kwCount).sort((a,b)=>b[1]-a[1]);
-  const presses=Object.entries(sc.pressCount).sort((a,b)=>b[1]-a[1]);
-  const hasKw=kws.length>0,hasPress=presses.length>0;
-  const cols=2+(hasKw?1:0)+(hasPress?1:0);
-  const hasOther=!!otherSc;
 
-  return`
+function renderResultHTML(sc, rows, prefix, otherSc, teacherMode) {
+  const hasKw = Object.keys(sc.kwCount).length > 0;
+  const hasPress = Object.keys(sc.pressCount).length > 0;
+  const cols = 2 + (hasKw ? 1 : 0) + (hasPress ? 1 : 0);
+  const hasOther = !!otherSc;
+
+  return `
   <div class="card">
-    <div style="margin-bottom:12px;">
-      <div class="metric-card">
-        <div class="metric-label">종합 필터버블 지수</div>
-        <div class="metric-val" style="font-size:32px;color:${barCol(sc.iTotal)}">${sc.iTotal}</div>
-        <div class="metric-sub">/ 100</div>
+    <div style="margin-bottom:16px;">
+      <div class="metric-card" style="background:var(--bg3);">
+        <div class="metric-label" style="font-size:12px;">종합 필터버블 위험 지수</div>
+        <div class="metric-val" style="font-size:38px; color:${barCol(sc.iTotal)}">${sc.iTotal} <span style="font-size:16px; color:var(--text2); font-weight:500;">/ 100</span></div>
+        <div style="font-size:11px; color:var(--text3); margin-top:4px;">100에 가까울수록 특정 정보 및 자극적 노출 에코챔버가 극심함을 의미합니다.</div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;margin-bottom:16px;">
-      <div class="metric-card"><div class="metric-label">카테고리 버블</div><div class="metric-val" style="color:${barCol(sc.iMaj)}">${sc.iMaj}</div></div>
-      <div class="metric-card"><div class="metric-label">세부카테고리 버블</div><div class="metric-val" style="color:${barCol(sc.iSub)}">${sc.iSub}</div></div>
-      ${hasKw?`<div class="metric-card"><div class="metric-label">키워드 버블</div><div class="metric-val" style="color:${barCol(sc.iKw)}">${sc.iKw}</div></div>`:''}
-      ${hasPress?`<div class="metric-card"><div class="metric-label">언론사 버블</div><div class="metric-val" style="color:${barCol(sc.iPrs)}">${sc.iPrs}</div></div>`:''}
+    <div style="display:grid; grid-template-columns:repeat(${cols}, 1fr); gap:10px; margin-bottom:16px;">
+      <div class="metric-card"><div class="metric-label">대장르 편향</div><div class="metric-val" style="color:${barCol(sc.iMaj)}">${sc.iMaj}</div></div>
+      <div class="metric-card"><div class="metric-label">소장르 편향</div><div class="metric-val" style="color:${barCol(sc.iSub)}">${sc.iSub}</div></div>
+      ${hasKw ? `<div class="metric-card"><div class="metric-label">단어 편향</div><div class="metric-val" style="color:${barCol(sc.iKw)}">${sc.iKw}</div></div>` : ''}
+      ${hasPress ? `<div class="metric-card"><div class="metric-label">미디어 편향</div><div class="metric-val" style="color:${barCol(sc.iPrs)}">${sc.iPrs}</div></div>` : ''}
     </div>
 
     <div class="rs">
-      <div class="st">버블 시각화</div>
-      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
-        <button class="bubble-tab-btn active" onclick="switchBubbleTab('${prefix}','major',this)" style="font-size:11px;padding:4px 10px;">카테고리</button>
-        <button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','sub',this)" style="font-size:11px;padding:4px 10px;">세부 카테고리</button>
-        ${hasKw?`<button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','kw',this)" style="font-size:11px;padding:4px 10px;">키워드</button>`:''}
-        ${hasPress?`<button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','press',this)" style="font-size:11px;padding:4px 10px;">언론사</button>`:''}
+      <div class="st">📊 버블 편향 분포 시각화</div>
+      <div style="display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap;">
+        <button class="bubble-tab-btn active" onclick="switchBubbleTab('${prefix}','major',this)" style="font-size:11px; padding:6px 12px;">대카테고리</button>
+        <button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','sub',this)" style="font-size:11px; padding:6px 12px;">세부카테고리</button>
+        ${hasKw ? `<button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','kw',this)" style="font-size:11px; padding:6px 12px;">주요 키워드</button>` : ''}
+        ${hasPress ? `<button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','press',this)" style="font-size:11px; padding:6px 12px;">언론 채널사</button>` : ''}
       </div>
-      ${teacherMode?`
-      <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">크기 = 빈도수</div>
-      <canvas id="${prefix}cvMine" style="display:block;"></canvas>
-      `:`
-      <div style="display:flex;gap:14px;margin-bottom:10px;font-size:11px;color:var(--text2);flex-wrap:wrap;align-items:center;">
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#534AB7;margin-right:4px;vertical-align:middle;"></span>나의 버블</span>
-        ${hasOther?`<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#888780;opacity:0.6;margin-right:4px;vertical-align:middle;"></span>학급 버블</span>
-        <span style="display:inline-flex;align-items:center;gap:4px;"><span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#534AB722;border:1.5px solid #534AB7;font-size:8px;color:#534AB7;font-weight:700;">✓</span>내가 본 항목</span>`:''}
-        <span style="color:var(--text3);">크기 = 빈도수</span>
+      
+      ${teacherMode ? `
+      <div style="font-size:11px; color:var(--text3); margin-bottom:10px;">버블의 직경 크기 = 빈출 횟수 비례</div>
+      <canvas id="${prefix}cvMine" class="bubble-canvas" style="max-width:400px; margin: 0 auto;"></canvas>
+      ` : `
+      <div style="display:flex; gap:14px; margin-bottom:14px; font-size:11px; color:var(--text2); flex-wrap:wrap; align-items:center;">
+        <span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#4f46e5; margin-right:4px; vertical-align:middle;"></span>나의 알고리즘 버블</span>
+        ${hasOther ? `<span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#888780; opacity:0.6; margin-right:4px; vertical-align:middle;"></span>학급 평균 분포</span>` : ''}
       </div>
-      ${hasOther?`
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      ${hasOther ? `
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
         <div>
-          <div style="font-size:11px;font-weight:500;color:var(--text2);text-align:center;margin-bottom:4px;">나의 버블</div>
-          <canvas id="${prefix}cvMine" style="width:100%;display:block;"></canvas>
+          <div style="font-size:11px; font-weight:700; color:var(--text2); text-align:center; margin-bottom:6px;">나의 버블</div>
+          <canvas id="${prefix}cvMine" class="bubble-canvas"></canvas>
         </div>
         <div>
-          <div style="font-size:11px;font-weight:500;color:var(--text2);text-align:center;margin-bottom:4px;">학급 전체 버블</div>
-          <canvas id="${prefix}cvClass" style="width:100%;display:block;"></canvas>
+          <div style="font-size:11px; font-weight:700; color:var(--text2); text-align:center; margin-bottom:6px;">우리 학급 버블</div>
+          <canvas id="${prefix}cvClass" class="bubble-canvas"></canvas>
         </div>
       </div>
-      `:`
-      <canvas id="${prefix}cvMine" style="display:block;"></canvas>
+      ` : `
+      <canvas id="${prefix}cvMine" class="bubble-canvas" style="max-width:440px; margin:0 auto;"></canvas>
       `}
       `}
     </div>
   </div>`;
 }
 
-function drawCharts(sc,rows,prefix,destroyList,otherSc,teacherMode){
-  if(destroyList){destroyList.forEach(c=>{try{c.destroy();}catch(e){}});destroyList.length=0;}
-  const isDark=matchMedia('(prefers-color-scheme: dark)').matches;
-  const total=rows.length;
-  const majors=Object.entries(sc.majorCount).sort((a,b)=>b[1]-a[1]);
-  const subs=Object.entries(sc.subCount).sort((a,b)=>b[1]-a[1]);
-  const kws=Object.entries(sc.kwCount).sort((a,b)=>b[1]-a[1]);
-  const presses=Object.entries(sc.pressCount).sort((a,b)=>b[1]-a[1]);
-  const oSc=otherSc||null;
-  const bubbleData={
-    major:{mine:majors,cls:oSc?Object.entries(oSc.majorCount).sort((a,b)=>b[1]-a[1]):[]},
-    sub:{mine:subs,cls:oSc?Object.entries(oSc.subCount).sort((a,b)=>b[1]-a[1]):[]},
-    kw:{mine:kws.slice(0,15),cls:oSc?Object.entries(oSc.kwCount).sort((a,b)=>b[1]-a[1]).slice(0,20):[]},
-    press:{mine:presses,cls:oSc?Object.entries(oSc.pressCount).sort((a,b)=>b[1]-a[1]):[]},
+function drawCharts(sc, rows, prefix, destroyList, otherSc, teacherMode) {
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const majors = Object.entries(sc.majorCount).sort((a, b) => b[1] - a[1]);
+  const subs = Object.entries(sc.subCount).sort((a, b) => b[1] - a[1]);
+  const kws = Object.entries(sc.kwCount).sort((a, b) => b[1] - a[1]);
+  const presses = Object.entries(sc.pressCount).sort((a, b) => b[1] - a[1]);
+  const oSc = otherSc || null;
+
+  const bubbleData = {
+    major: { mine: majors, cls: oSc ? Object.entries(oSc.majorCount).sort((a, b) => b[1] - a[1]) : [] },
+    sub: { mine: subs, cls: oSc ? Object.entries(oSc.subCount).sort((a, b) => b[1] - a[1]) : [] },
+    kw: { mine: kws.slice(0, 15), cls: oSc ? Object.entries(sc.kwCount).sort((a, b) => b[1] - a[1]).slice(0, 20) : [] },
+    press: { mine: presses, cls: oSc ? Object.entries(oSc.pressCount).sort((a, b) => b[1] - a[1]) : [] },
   };
-  window[prefix+'_bubbleData']=bubbleData;
-  window[prefix+'_teacherMode']=!!teacherMode;
-  setTimeout(()=>drawSideBySide(prefix,bubbleData.major,isDark),50);
+
+  window[prefix + '_bubbleData'] = bubbleData;
+  window[prefix + '_teacherMode'] = !!teacherMode;
+  setTimeout(() => drawSideBySide(prefix, bubbleData.major, isDark), 50);
 }
 
-function switchBubbleTab(prefix,cat,btn){
-  btn.closest('.rs').querySelectorAll('.bubble-tab-btn').forEach(b=>b.classList.remove('active'));
+function switchBubbleTab(prefix, cat, btn) {
+  btn.closest('.rs').querySelectorAll('.bubble-tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const isDark=matchMedia('(prefers-color-scheme: dark)').matches;
-  const bd=window[prefix+'_bubbleData'];
-  if(bd&&bd[cat])drawSideBySide(prefix,bd[cat],isDark);
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const bd = window[prefix + '_bubbleData'];
+  if (bd && bd[cat]) drawSideBySide(prefix, bd[cat], isDark);
 }
 
-function drawSideBySide(prefix,data,isDark){
-  const cvMine=document.getElementById(prefix+'cvMine');
-  if(!cvMine)return;
-  const teacherMode=window[prefix+'_teacherMode'];
-  const mineSet=new Set(data.mine.map(x=>x[0]));
-  let el=cvMine.parentElement;
-  let pw=0;
-  while(el&&!pw){pw=el.clientWidth;el=el.parentElement;}
-  pw=pw||600;
-  const cvClass=document.getElementById(prefix+'cvClass');
-  const hasOther=!!cvClass;
-  if(teacherMode||!hasOther){
-    const sz=pw*2;
-    cvMine.width=sz;cvMine.height=sz;cvMine.style.width=(pw/4)+'px';cvMine.style.height=(pw/4)+'px';
-    const sc=teacherMode?1.5:1;
-    drawPanel(cvMine,data.mine,'#534AB7',mineSet,false,isDark,sc);
-  }else{
-    const sz=pw*2;
-    cvMine.width=sz;cvMine.height=sz;cvMine.style.width=(pw/2)+'px';cvMine.style.height=(pw/2)+'px';
-    if(cvClass){cvClass.width=sz;cvClass.height=sz;cvClass.style.width=(pw/2)+'px';cvClass.style.height=(pw/2)+'px';}
-    drawPanel(cvMine,data.mine,'#534AB7',mineSet,false,isDark,1.5);
-    if(cvClass)drawPanel(cvClass,data.cls,'#888780',mineSet,true,isDark,1.5);
+function drawSideBySide(prefix, data, isDark) {
+  const cvMine = document.getElementById(prefix + 'cvMine');
+  if (!cvMine) return;
+  const teacherMode = window[prefix + '_teacherMode'];
+  const mineSet = new Set(data.mine.map(x => x[0]));
+  let el = cvMine.parentElement;
+  let pw = 0;
+  while (el && !pw) { pw = el.clientWidth; el = el.parentElement; }
+  pw = pw || 380;
+  const cvClass = document.getElementById(prefix + 'cvClass');
+  const hasOther = !!cvClass;
+
+  if (teacherMode || !hasOther) {
+    // 내부 해상도를 1:1 정사각형으로 동일하게 할당하여 찌그러짐 현상을 완벽히 배제
+    const sz = pw * 2;
+    cvMine.width = sz; cvMine.height = sz; 
+    drawPanel(cvMine, data.mine, '#4f46e5', mineSet, false, isDark, 1.6);
+  } else {
+    const sz = pw * 2;
+    cvMine.width = sz; cvMine.height = sz;
+    if (cvClass) { cvClass.width = sz; cvClass.height = sz; }
+    drawPanel(cvMine, data.mine, '#4f46e5', mineSet, false, isDark, 1.6);
+    if (cvClass) drawPanel(cvClass, data.cls, '#64748b', mineSet, true, isDark, 1.6);
   }
 }
 
-function drawPanel(canvas,items,baseCol,mineSet,markOverlap,isDark,scale){
-  scale=scale||1;
-  const ctx=canvas.getContext('2d');
-  const sz=canvas.width;
-  ctx.clearRect(0,0,sz,sz);
-  const cx=sz/2,cy=sz/2,radius=sz*0.44;
-  ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);
-  ctx.strokeStyle=baseCol+(isDark?'44':'33');
-  ctx.lineWidth=2;ctx.setLineDash([6,5]);ctx.stroke();ctx.setLineDash([]);
-  if(!items.length){
-    ctx.font=`${sz*0.06}px sans-serif`;
-    ctx.fillStyle=isDark?'rgba(255,255,255,0.2)':'rgba(0,0,0,0.15)';
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('데이터 없음',cx,cy);
-    ctx.textBaseline='alphabetic';return;
+function drawPanel(canvas, items, baseCol, mineSet, markOverlap, isDark, scale) {
+  scale = scale || 1;
+  const ctx = canvas.getContext('2d');
+  const sz = canvas.width;
+  ctx.clearRect(0, 0, sz, sz);
+  const cx = sz / 2, cy = sz / 2, radius = sz * 0.44;
+
+  ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = baseCol + (isDark ? '33' : '22');
+  ctx.lineWidth = 2; ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+
+  if (!items.length) {
+    ctx.font = `${sz * 0.05}px sans-serif`;
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('데이터 없음', cx, cy);
+    return;
   }
-  placePanelBubbles(ctx,items,cx,cy,radius,baseCol,mineSet,markOverlap,isDark,scale);
+  placePanelBubbles(ctx, items, cx, cy, radius, baseCol, mineSet, markOverlap, isDark, scale);
 }
 
-function placePanelBubbles(ctx,items,cx,cy,radius,baseCol,mineSet,markOverlap,isDark,scale){
-  scale=scale||1;
-  const MINE_COL='#534AB7';
-  const maxC=Math.max(...items.map(i=>i[1]));
-  const minB=radius*0.1,maxB=radius*0.22;
-  const placed=[];
-  items.forEach((item,idx)=>{
-    const[label,count]=item;
-    const isOverlap=markOverlap&&mineSet.has(label);
-    const r=minB+((count/maxC)*(maxB-minB));
-    let bx,by,ok=false,tries=0;
-    const base=(idx/items.length)*Math.PI*2-Math.PI/2;
-    const step=(Math.PI*2)/items.length;
-    while(tries<160&&!ok){
-      let angle,dist;
-      if(tries<60){angle=base+(Math.random()-0.5)*step*1.2;}else{angle=Math.random()*Math.PI*2;}
-      dist=(r+6)+Math.random()*(radius-r*2-10);
-      bx=cx+Math.cos(angle)*dist;by=cy+Math.sin(angle)*dist;
-      if(Math.sqrt((bx-cx)**2+(by-cy)**2)+r>radius+2){tries++;continue;}
-      if(!placed.some(p=>{const dx=bx-p.x,dy=by-p.y;return Math.sqrt(dx*dx+dy*dy)<r+p.r+6;}))ok=true;
+function placePanelBubbles(ctx, items, cx, cy, radius, baseCol, mineSet, markOverlap, isDark, scale) {
+  const MINE_COL = '#4f46e5';
+  const maxC = Math.max(...items.map(i => i[1]));
+  const minB = radius * 0.12, maxB = radius * 0.28;
+  const placed = [];
+
+  items.forEach((item, idx) => {
+    const [label, count] = item;
+    const isOverlap = markOverlap && mineSet.has(label);
+    const r = minB + ((count / maxC) * (maxB - minB));
+    let bx, by, ok = false, tries = 0;
+    const base = (idx / items.length) * Math.PI * 2 - Math.PI / 2;
+    const step = (Math.PI * 2) / items.length;
+
+    while (tries < 200 && !ok) {
+      let angle, dist;
+      if (tries < 80) { angle = base + (Math.random() - 0.5) * step * 1.3; } else { angle = Math.random() * Math.PI * 2; }
+      dist = (r + 8) + Math.random() * (radius - r * 2 - 12);
+      bx = cx + Math.cos(angle) * dist; by = cy + Math.sin(angle) * dist;
+      if (Math.sqrt((bx - cx) ** 2 + (by - cy) ** 2) + r > radius + 2) { tries++; continue; }
+      if (!placed.some(p => { const dx = bx - p.x, dy = by - p.y; return Math.sqrt(dx * dx + dy * dy) < r + p.r + 8; })) ok = true;
       tries++;
     }
-    if(!ok){const a=base;bx=cx+Math.cos(a)*Math.min(r+8+idx*4,radius-r-6);by=cy+Math.sin(a)*Math.min(r+8+idx*4,radius-r-6);}
-    placed.push({x:bx,y:by,r});
 
-    ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);
-    ctx.fillStyle=hexA(isOverlap?MINE_COL:baseCol,(isOverlap?0.88:0.55)*(isDark?0.8:1));
+    if (!ok) { bx = cx + Math.cos(base) * Math.min(r + 8 + idx * 4, radius - r - 6); by = cy + Math.sin(base) * Math.min(r + 8 + idx * 4, radius - r - 6); }
+    placed.push({ x: bx, y: by, r });
+
+    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.fillStyle = hexA(isOverlap ? MINE_COL : baseCol, (isOverlap ? 0.85 : 0.6) * (isDark ? 0.8 : 1));
     ctx.fill();
-    if(isOverlap){
-      ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);
-      ctx.strokeStyle=MINE_COL;ctx.lineWidth=Math.max(2,r*0.08);ctx.stroke();
+
+    if (isOverlap) {
+      ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2);
+      ctx.strokeStyle = MINE_COL; ctx.lineWidth = Math.max(2, r * 0.08); ctx.stroke();
     }
-    const fs=Math.max(10,Math.min(16*scale,r*0.42))*scale;
-    ctx.font=`${isOverlap||!markOverlap?'500':'400'} ${fs}px sans-serif`;
-    ctx.fillStyle=isOverlap?(isDark?'#CECBF6':'#26215C'):(markOverlap?(isDark?'#D3D1C7':'#444441'):(isDark?'#CECBF6':'#26215C'));
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    const lbl=trimText(ctx,label,r*1.7);
-    if(r>=24){
-      ctx.fillText(lbl,bx,by-fs*0.55);
-      ctx.font=`${Math.max(9*scale,fs-2*scale)}px sans-serif`;
-      ctx.fillStyle=isOverlap?(isDark?'#AFA9EC':'#534AB7'):(isDark?'#B4B2A9':'#5F5E5A');
-      ctx.fillText('×'+count,bx,by+fs*0.6);
-    }else{ctx.fillText(lbl,bx,by);}
-    ctx.textBaseline='alphabetic';
-    if(isOverlap&&r>=18){
-      const br=r*0.28,bbx=bx+r*0.68,bby=by-r*0.68;
-      ctx.beginPath();ctx.arc(bbx,bby,br,0,Math.PI*2);
-      ctx.fillStyle=isDark?'#3C3489':'#534AB7';ctx.fill();
-      ctx.font=`600 ${Math.max(8*scale,br*1.1)}px sans-serif`;
-      ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('✓',bbx,bby+0.5);ctx.textBaseline='alphabetic';
+
+    const fs = Math.max(11, Math.min(16 * scale, r * 0.4)) * scale;
+    ctx.font = `bold ${fs}px sans-serif`;
+    ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const lbl = trimText(ctx, label, r * 1.75);
+
+    if (r >= 26) {
+      ctx.fillText(lbl, bx, by - fs * 0.5);
+      ctx.font = `${Math.max(10 * scale, fs - 2 * scale)}px sans-serif`;
+      ctx.fillStyle = isDark ? '#cbd5e1' : '#475569';
+      ctx.fillText(count + '회', bx, by + fs * 0.7);
+    } else {
+      ctx.fillText(lbl, bx, by);
     }
   });
 }
 
-function hexA(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},${a.toFixed(2)})`;}
-function trimText(ctx,text,mw){if(ctx.measureText(text).width<=mw)return text;let t=text;while(t.length>1&&ctx.measureText(t+'…').width>mw)t=t.slice(0,-1);return t+'…';}
-
-/* ── 저장/불러오기 (localStorage) ── */
-function loadRecords(){
-  try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');}catch(e){return[];}
+function hexA(hex, a) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`;
 }
-function saveRecord(record){
-  const records=loadRecords();
-  records.push(record);
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(records));
+
+function trimText(ctx, text, mw) {
+  if (ctx.measureText(text).width <= mw) return text;
+  let t = text;
+  while (t.length > 1 && ctx.measureText(t + '…').width > mw) t = t.slice(0, -1);
+  return t + '…';
 }
-function clearRecords(){localStorage.removeItem(STORAGE_KEY);}
 
-/* ── 학생: 분석 + 저장 ── */
-function analyzeAndSave(){
-  const name=document.getElementById('studentName').value.trim();
-  if(!name){alert('학생 이름을 입력해주세요.');return;}
-  if(rows.length<3){alert('최소 3개 이상 뉴스를 입력해주세요.');return;}
+// 종합 통합 저장소 핸들러 (LocalStorage + Google Sheets 동시 기록)
+function loadLocalRecords() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (e) { return []; }
+}
 
-  const sc=computeScores(rows);
-  const record={name,round:currentRound,timestamp:Date.now(),rows:[...rows],scores:{iMaj:sc.iMaj,iSub:sc.iSub,iKw:sc.iKw,iPrs:sc.iPrs,iTotal:sc.iTotal}};
+function loadRecords() {
+  // 구글 클라우드에서 가져온 기록이 존재하면 병합하여 반환, 그렇지 않으면 로컬 데이터를 반환
+  if (cloudRecords && cloudRecords.length > 0) {
+    return cloudRecords;
+  }
+  return loadLocalRecords();
+}
 
-  const existing=loadRecords();
-  const filtered=existing.filter(r=>!(r.name===name&&r.round===currentRound));
+function saveRecord(record) {
+  const records = loadLocalRecords();
+  const filtered = records.filter(r => !(r.name === record.name && r.round === record.round));
   filtered.push(record);
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(filtered));
-
-  const allRecords=loadRecords();
-  const otherRows=allRecords.filter(r=>r.name!==name).flatMap(r=>r.rows);
-  const otherSc=otherRows.length?computeScores(otherRows):null;
-
-  const r1rec=allRecords.find(r=>r.name===name&&r.round===1);
-  const r2rec=allRecords.find(r=>r.name===name&&r.round===2);
-
-  const headerHTML=(round)=>`<div class="card" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-    <div><strong>${escHtml(name)}</strong> · <span style="font-size:12px;padding:2px 8px;border-radius:999px;background:${round===1?'#534AB722':'#1D9E7522'};color:${round===1?'#3C3489':'#085041'};">${round}차 분석</span></div>
-    <div><span class="saved-badge">✓ 저장됨</span></div>
-  </div>`;
-
-  if(r1rec&&r2rec){
-    const sc1f=computeScores(r1rec.rows),sc2f=computeScores(r2rec.rows);
-    document.getElementById('sCompareContent').innerHTML=headerHTML(currentRound)+renderCompareHTML(r1rec.scores,r2rec.scores,r1rec.rows,r2rec.rows);
-    setTimeout(()=>drawCompareCharts(r1rec.scores,r2rec.scores,r1rec.rows,r2rec.rows),100);
-  }else{
-    document.getElementById('sCompareContent').innerHTML=headerHTML(currentRound)+`<div class="card"><div class="empty-msg">${currentRound===1?'2차 분석을 완료하면 1차 vs 2차 비교를 볼 수 있어요.':'1차 분석도 완료하면 1차 vs 2차 비교를 볼 수 있어요.'}</div></div>`;
-  }
-
-  if(r1rec){
-    const sc1f=computeScores(r1rec.rows);
-    document.getElementById('sResult1Content').innerHTML=headerHTML(1)+renderResultHTML(sc1f,r1rec.rows,'r1_',otherSc);
-    setTimeout(()=>drawCharts(sc1f,r1rec.rows,'r1_',null,otherSc),100);
-  }else{
-    document.getElementById('sResult1Content').innerHTML=headerHTML(currentRound)+`<div class="card"><div class="empty-msg">1차 분석 데이터가 없어요.</div></div>`;
-  }
-  if(r2rec){
-    const sc2f=computeScores(r2rec.rows);
-    document.getElementById('sResult2Content').innerHTML=headerHTML(2)+renderResultHTML(sc2f,r2rec.rows,'r2_',otherSc);
-    setTimeout(()=>drawCharts(sc2f,r2rec.rows,'r2_',null,otherSc),100);
-  }else{
-    document.getElementById('sResult2Content').innerHTML=headerHTML(currentRound)+`<div class="card"><div class="empty-msg">2차 분석을 완료하면 여기서 결과를 볼 수 있어요.</div></div>`;
-  }
-
-  showSTab(r1rec&&r2rec?3:currentRound===1?1:2);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
 }
 
-function renderCompareHTML(sc1,sc2,rows1,rows2,prefix){
-  prefix=prefix||'';
-  const hasKw=sc1.iKw!==null||sc2.iKw!==null;
-  const hasPress=sc1.iPrs!==null||sc2.iPrs!==null;
-  function changeBadge(v1,v2){
-    if(v1===null||v2===null)return'';
-    const d=v2-v1;
-    const col=d<0?'#1D9E75':d>0?'#D85A30':'#888780';
-    const bg=d<0?'#1D9E7522':d>0?'#D85A3022':'#88878022';
-    return`<span style="font-size:11px;padding:2px 7px;border-radius:999px;background:${bg};color:${col};font-weight:500;">${d!==0?(d<0?'▼':'▲')+Math.abs(d):'━'}</span>`;
-  }
-  function scoreCell(label,v1,v2){
-    if(v1===null&&v2===null)return'';
-    const c1=v1!==null?barCol(v1):'var(--text3)';
-    const c2=v2!==null?barCol(v2):'var(--text3)';
-    return`<div><div class="metric-label" style="text-align:center;margin-bottom:4px;">${label}</div>
-      <div class="metric-card">
-        <div style="display:flex;align-items:baseline;justify-content:center;gap:5px;margin-top:3px;">
-          <span style="font-size:18px;font-weight:500;color:${c1};">${v1??'-'}</span>
-          <span style="font-size:11px;color:var(--text3);">→</span>
-          <span style="font-size:18px;font-weight:500;color:${c2};">${v2??'-'}</span>
-        </div>
-        <div style="margin-top:4px;">${changeBadge(v1,v2)}</div>
-      </div></div>`;
-  }
-  return`<div class="card">
-    <div style="font-size:13px;font-weight:500;margin-bottom:14px;">필터버블 지수 변화 (1차 → 2차)</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:16px;">
-      ${scoreCell('종합',sc1.iTotal,sc2.iTotal)}
-      ${scoreCell('카테고리',sc1.iMaj,sc2.iMaj)}
-      ${scoreCell('세부카테고리',sc1.iSub,sc2.iSub)}
-      ${hasKw?scoreCell('키워드',sc1.iKw,sc2.iKw):''}
-      ${hasPress?scoreCell('언론사',sc1.iPrs,sc2.iPrs):''}
-    </div>
-    <div style="position:relative;width:100%;height:200px;">
-      <canvas id="${prefix}compareChart" role="img" aria-label="1차 2차 버블 지수 비교 막대 차트"></canvas>
-    </div>
-    <div class="rs">
-      <div class="st">버블 시각화 비교</div>
-      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-        <button class="bubble-tab-btn active" onclick="switchCmpTab('major',this,'${prefix}')" style="font-size:11px;padding:4px 10px;">카테고리</button>
-        <button class="bubble-tab-btn" onclick="switchCmpTab('sub',this,'${prefix}')" style="font-size:11px;padding:4px 10px;">세부 카테고리</button>
-        ${hasKw?`<button class="bubble-tab-btn" onclick="switchCmpTab('kw',this,'${prefix}')" style="font-size:11px;padding:4px 10px;">키워드</button>`:''}
-        ${hasPress?`<button class="bubble-tab-btn" onclick="switchCmpTab('press',this,'${prefix}')" style="font-size:11px;padding:4px 10px;">언론사</button>`:''}
-      </div>
-      <div style="display:flex;gap:12px;margin-bottom:10px;font-size:11px;color:var(--text2);align-items:center;">
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#534AB7;margin-right:4px;vertical-align:middle;"></span>1차</span>
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1D9E75;margin-right:4px;vertical-align:middle;"></span>2차</span>
-        <span style="color:var(--text3);">크기 = 빈도수</span>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div><div style="font-size:11px;font-weight:500;color:var(--text2);text-align:center;margin-bottom:4px;">1차</div>
-          <canvas id="${prefix}cmpBub1" style="width:100%;height:auto;display:block;"></canvas></div>
-        <div><div style="font-size:11px;font-weight:500;color:var(--text2);text-align:center;margin-bottom:4px;">2차</div>
-          <canvas id="${prefix}cmpBub2" style="width:100%;height:auto;display:block;"></canvas></div>
-      </div>
-    </div>
-  </div>`;
-}
-
-let cmpChartInsts={};
-function drawCompareCharts(sc1,sc2,rows1,rows2,prefix){
-  prefix=prefix||'';
-  const isDark=matchMedia('(prefers-color-scheme: dark)').matches;
-  const textCol=isDark?'rgba(255,255,255,0.55)':'rgba(0,0,0,0.5)';
-  const gridCol=isDark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)';
-  if(cmpChartInsts[prefix])cmpChartInsts[prefix].destroy();
-  const cc=document.getElementById(prefix+'compareChart');
-  if(cc)cmpChartInsts[prefix]=new Chart(cc,{
-    type:'bar',
-    data:{labels:['종합','카테고리','세부카테고리','키워드','언론사'],
-      datasets:[
-        {label:'1차',data:[sc1.iTotal,sc1.iMaj,sc1.iSub,sc1.iKw??0,sc1.iPrs??0],backgroundColor:'#534AB7aa',borderRadius:4},
-        {label:'2차',data:[sc2.iTotal,sc2.iMaj,sc2.iSub,sc2.iKw??0,sc2.iPrs??0],backgroundColor:'#1D9E75aa',borderRadius:4},
-      ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:true,labels:{color:textCol,font:{size:11},boxWidth:10}}},
-      scales:{x:{ticks:{color:textCol},grid:{display:false}},y:{min:0,max:100,ticks:{color:textCol},grid:{color:gridCol}}}}
+function clearAll() {
+  myConfirm("정말 전체 학생들의 필터버블 진단 데이터를 완전히 초기화하시겠습니까? (구글 시트 연동 중일 경우 구글 시트 내부 데이터는 직접 삭제해 주셔야 합니다.)").then(ok => {
+    if (ok) {
+      // 1. 로컬스토리지 청소
+      localStorage.removeItem(STORAGE_KEY);
+      cloudRecords = [];
+      
+      // 2. 학생 이름 및 입력 리스트 메모리 리셋
+      const studentNameInput = document.getElementById('studentName');
+      if (studentNameInput) studentNameInput.value = '';
+      
+      // 3. 입력용 뼈대 행 비우고 기본 빈 칸 4개로 초기 세팅
+      rows = [];
+      for (let i = 0; i < 4; i++) addRow();
+      
+      // 4. 결과 출력 컨텐츠 리필터링 및 가리기
+      document.getElementById('sResult1Content').innerHTML = `<div class="card"><div class="empty-msg">아직 1차 분석 데이터가 존재하지 않습니다.</div></div>`;
+      document.getElementById('sResult2Content').innerHTML = `<div class="card"><div class="empty-msg">아직 2차 분석 데이터가 등록되지 않았습니다.</div></div>`;
+      document.getElementById('sCompareContent').innerHTML = `<div class="card"><div class="empty-msg">데이터를 저장하면 비교 분석이 진행됩니다.</div></div>`;
+      
+      // 5. 교사 탭 동기화 트리거
+      loadTeacher();
+      
+      myAlert("로컬 브라우저에 누적되었던 모든 분석 이력과 대시보드가 초기화되었습니다.", "✨");
+    }
   });
-  const sc1f=computeScores(rows1),sc2f=computeScores(rows2);
-  window['cmp_bubbleData_'+prefix]={
-    major:{r1:Object.entries(sc1f.majorCount).sort((a,b)=>b[1]-a[1]),r2:Object.entries(sc2f.majorCount).sort((a,b)=>b[1]-a[1])},
-    sub:{r1:Object.entries(sc1f.subCount).sort((a,b)=>b[1]-a[1]),r2:Object.entries(sc2f.subCount).sort((a,b)=>b[1]-a[1])},
-    kw:{r1:Object.entries(sc1f.kwCount).sort((a,b)=>b[1]-a[1]),r2:Object.entries(sc2f.kwCount).sort((a,b)=>b[1]-a[1])},
-    press:{r1:Object.entries(sc1f.pressCount).sort((a,b)=>b[1]-a[1]),r2:Object.entries(sc2f.pressCount).sort((a,b)=>b[1]-a[1])},
-  };
-  drawCmpBubbles('major',prefix);
 }
 
-function switchCmpTab(cat,btn,prefix){
-  prefix=prefix||'';
-  btn.closest('.rs').querySelectorAll('.bubble-tab-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');drawCmpBubbles(cat,prefix);
+function analyzeAndSave() {
+  const name = document.getElementById('studentName').value.trim();
+  if (!name) { 
+    myAlert('학생 이름을 입력해 주세요.'); 
+    return; 
+  }
+  
+  const filledRows = rows.filter(r => r.ch.trim() !== '');
+  if (filledRows.length < 3) { 
+    myAlert('최소 3개 이상의 뉴스를 올바르게 작성해 주세요.'); 
+    return; 
+  }
+
+  const saveBtn = document.getElementById('saveMainBtn');
+  const originText = saveBtn.innerHTML;
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = "⚡ 분석 결과를 클라우드에 전송 중...";
+
+  const sc = computeScores(filledRows);
+  const record = {
+    name,
+    round: currentRound,
+    timestamp: Date.now(),
+    rows: [...filledRows],
+    scores: { iMaj: sc.iMaj, iSub: sc.iSub, iKw: sc.iKw, iPrs: sc.iPrs, iTotal: sc.iTotal }
+  };
+
+  // 1. 로컬 백업 저장 실행
+  saveRecord(record);
+
+  // 2. 구글 스프레드시트 연동이 지정되어 있는 경우 외부 전송 시도
+  const gasUrl = getGasUrl();
+  if (gasUrl) {
+    fetch(gasUrl, {
+      method: "POST",
+      mode: "no-cors", // 브라우저 CORS 차단 정책 우회용 no-cors 옵션 탑재
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(record)
+    })
+    .then(() => {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originText;
+      
+      // 구글 시트 전송 완료 후 UI 표시 업데이트 실행
+      finishSaveFlow(name, currentRound, record);
+      myAlert("구글 스프레드시트 클라우드와 로컬 저장소에 데이터가 정상 연동 보존되었습니다!", "🚀");
+    })
+    .catch(err => {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originText;
+      console.error(err);
+      
+      // 실패하더라도 로컬 모드로 일단 전주기 완료 흐름 유지
+      finishSaveFlow(name, currentRound, record);
+      myAlert("구글 시트 연송 전송에 실패했습니다. 입력 양식과 Apps Script URL을 다시 한번 확인해 주세요. (로컬 브라우저에는 임시 저장되었습니다.)", "⚠️");
+    });
+  } else {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = originText;
+    
+    // 오프라인/로컬 단독 모드 완료
+    finishSaveFlow(name, currentRound, record);
+    myAlert("분석이 완료되었습니다! (구글 시트 URL이 설정되지 않아 로컬 브라우저에 단독 기록되었습니다.)", "💾");
+  }
 }
-function drawCmpBubbles(cat,prefix){
-  prefix=prefix||'';
-  const isDark=matchMedia('(prefers-color-scheme: dark)').matches;
-  const bd=window['cmp_bubbleData_'+prefix];if(!bd)return;
-  drawRoundPanel(prefix+'cmpBub1',bd[cat].r1,'#534AB7',isDark);
-  drawRoundPanel(prefix+'cmpBub2',bd[cat].r2,'#1D9E75',isDark);
+
+// 시청 기록 분석 완료 후 탭 전환 및 차트 생성 흐름
+function finishSaveFlow(name, round, record) {
+  const allRecords = loadRecords();
+  const otherRows = allRecords.filter(r => r.name !== name).flatMap(r => r.rows);
+  const otherSc = otherRows.length ? computeScores(otherRows) : null;
+
+  const r1rec = allRecords.find(r => r.name === name && r.round === 1) || (round === 1 ? record : null);
+  const r2rec = allRecords.find(r => r.name === name && r.round === 2) || (round === 2 ? record : null);
+
+  const headerHTML = (roundNum) => `
+  <div class="card" style="margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+    <div><strong>${escHtml(name)}</strong> 학생의 <span style="font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px; background:${roundNum === 1 ? 'rgba(79, 70, 229, 0.1)' : 'rgba(29, 158, 117, 0.1)'}; color:${roundNum === 1 ? 'var(--primary)' : '#0f6e56'};">${roundNum}차 진단 결과</span></div>
+    <div><span class="saved-badge">✓ 실시간 안전 연동 완료</span></div>
+  </div>`;
+
+  if (r1rec && r2rec) {
+    document.getElementById('sCompareContent').innerHTML = headerHTML(currentRound) + renderCompareHTML(r1rec.scores, r2rec.scores, r1rec.rows, r2rec.rows);
+    setTimeout(() => drawCompareCharts(r1rec.scores, r2rec.scores, r1rec.rows, r2rec.rows), 100);
+  } else {
+    document.getElementById('sCompareContent').innerHTML = headerHTML(currentRound) + `<div class="card"><div class="empty-msg">동일한 학생 이름으로 1차와 2차 분석 데이터를 모두 완료해 저장을 하시면 여기서 '실시간 알고리즘 편중 탈출률' 비교를 분석해 볼 수 있습니다.</div></div>`;
+  }
+
+  if (r1rec) {
+    const sc1f = computeScores(r1rec.rows);
+    document.getElementById('sResult1Content').innerHTML = headerHTML(1) + renderResultHTML(sc1f, r1rec.rows, 'r1_', otherSc);
+    setTimeout(() => drawCharts(sc1f, r1rec.rows, 'r1_', null, otherSc), 100);
+  } else {
+    document.getElementById('sResult1Content').innerHTML = headerHTML(currentRound) + `<div class="card"><div class="empty-msg">아직 1차 분석 데이터가 존재하지 않습니다.</div></div>`;
+  }
+
+  if (r2rec) {
+    const sc2f = computeScores(r2rec.rows);
+    document.getElementById('sResult2Content').innerHTML = headerHTML(2) + renderResultHTML(sc2f, r2rec.rows, 'r2_', otherSc);
+    setTimeout(() => drawCharts(sc2f, r2rec.rows, 'r2_', null, otherSc), 100);
+  } else {
+    document.getElementById('sResult2Content').innerHTML = headerHTML(currentRound) + `<div class="card"><div class="empty-msg">아직 2차 분석 데이터가 등록되지 않았습니다. 알고리즘 변화 행동 후 2차 분석을 등록하세요.</div></div>`;
+  }
+
+  showSTab(r1rec && r2rec ? 3 : currentRound === 1 ? 1 : 2);
 }
-function drawRoundPanel(id,items,col,isDark){
-  const cv=document.getElementById(id);if(!cv)return;
-  const pw=cv.parentElement.clientWidth||260,sz=pw*2;
-  cv.width=sz;cv.height=sz;cv.style.width=pw+'px';cv.style.height=pw+'px';
-  const ctx=cv.getContext('2d');ctx.clearRect(0,0,sz,sz);
-  const cx=sz/2,cy=sz/2,radius=sz*0.44;
-  ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);
-  ctx.strokeStyle=col+(isDark?'44':'33');ctx.lineWidth=2;ctx.setLineDash([6,5]);ctx.stroke();ctx.setLineDash([]);
-  if(!items||!items.length)return;
-  const maxC=Math.max(...items.map(i=>i[1]));
-  const minB=radius*0.1,maxB=radius*0.22,placed=[];
-  items.forEach((item,idx)=>{
-    const[label,count]=item,r=minB+((count/maxC)*(maxB-minB));
-    let bx,by,ok=false,tries=0;
-    const base=(idx/items.length)*Math.PI*2-Math.PI/2,step=(Math.PI*2)/items.length;
-    while(tries<160&&!ok){
-      let angle,dist;
-      if(tries<60){angle=base+(Math.random()-0.5)*step*1.2;}else{angle=Math.random()*Math.PI*2;}
-      dist=(r+6)+Math.random()*(radius-r*2-10);
-      bx=cx+Math.cos(angle)*dist;by=cy+Math.sin(angle)*dist;
-      if(Math.sqrt((bx-cx)**2+(by-cy)**2)+r>radius+2){tries++;continue;}
-      if(!placed.some(p=>{const dx=bx-p.x,dy=by-p.y;return Math.sqrt(dx*dx+dy*dy)<r+p.r+6;}))ok=true;
+
+function renderCompareHTML(sc1, sc2, rows1, rows2, prefix) {
+  prefix = prefix || '';
+  const hasKw = sc1.iKw !== null || sc2.iKw !== null;
+  const hasPress = sc1.iPrs !== null || sc2.iPrs !== null;
+
+  function changeBadge(v1, v2) {
+    if (v1 === null || v2 === null) return '';
+    const d = v2 - v1;
+    const col = d < 0 ? 'var(--success-text)' : d > 0 ? 'var(--danger-text)' : 'var(--text3)';
+    const bg = d < 0 ? 'var(--success-bg)' : d > 0 ? 'var(--danger-bg)' : 'var(--bg3)';
+    return `<span style="font-size:11px; padding:3px 9px; border-radius:999px; background:${bg}; color:${col}; font-weight:700;">${d !== 0 ? (d < 0 ? '개선 ▼ ' : '상승 ▲ ') + Math.abs(d) : '변동없음 ━'}</span>`;
+  }
+
+  function scoreCell(label, v1, v2) {
+    if (v1 === null && v2 === null) return '';
+    const c1 = v1 !== null ? barCol(v1) : 'var(--text3)';
+    const c2 = v2 !== null ? barCol(v2) : 'var(--text3)';
+    return `
+    <div>
+      <div class="metric-label" style="text-align:center; margin-bottom:6px;">${label}</div>
+      <div class="metric-card">
+        <div style="display:flex; align-items:baseline; justify-content:center; gap:6px;">
+          <span style="font-size:22px; font-weight:800; color:${c1};">${v1 ?? '-'}</span>
+          <span style="font-size:12px; color:var(--text3);">→</span>
+          <span style="font-size:22px; font-weight:800; color:${c2};">${v2 ?? '-'}</span>
+        </div>
+        <div style="margin-top:6px;">${changeBadge(v1, v2)}</div>
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="card">
+    <div style="font-size:14px; font-weight:700; margin-bottom:14px;">📈 필터버블 위험 지수 종합 변동 추이 (1차 → 2차)</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:10px; margin-bottom:20px;">
+      ${scoreCell('종합 수치', sc1.iTotal, sc2.iTotal)}
+      ${scoreCell('대장르 편향', sc1.iMaj, sc2.iMaj)}
+      ${scoreCell('소장르 편향', sc1.iSub, sc2.iSub)}
+      ${hasKw ? scoreCell('키워드 편향', sc1.iKw, sc2.iKw) : ''}
+      ${hasPress ? scoreCell('채널 편향', sc1.iPrs, sc2.iPrs) : ''}
+    </div>
+    <div style="position:relative; width:100%; height:220px; background:var(--bg2); border-radius:var(--radius); padding:10px;">
+      <canvas id="${prefix}compareChart" role="img"></canvas>
+    </div>
+    
+    <div class="rs">
+      <div class="st">⚖️ 시각적 버블 체감도 변화 비교</div>
+      <div style="display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;">
+        <button class="bubble-tab-btn active" onclick="switchCmpTab('major',this,'${prefix}')" style="font-size:11px; padding:6px 12px;">대카테고리</button>
+        <button class="bubble-tab-btn" onclick="switchCmpTab('sub',this,'${prefix}')" style="font-size:11px; padding:6px 12px;">세부카테고리</button>
+        ${hasKw ? `<button class="bubble-tab-btn" onclick="switchCmpTab('kw',this,'${prefix}')" style="font-size:11px; padding:6px 12px;">키워드</button>` : ''}
+        ${hasPress ? `<button class="bubble-tab-btn" onclick="switchCmpTab('press',this,'${prefix}')" style="font-size:11px; padding:6px 12px;">채널사</button>` : ''}
+      </div>
+      <div style="display:flex; gap:12px; margin-bottom:12px; font-size:11px; color:var(--text2); align-items:center;">
+        <span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#4f46e5; margin-right:4px; vertical-align:middle;"></span>1차 시기</span>
+        <span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#1d9e75; margin-right:4px; vertical-align:middle;"></span>2차 시기</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <div style="font-size:11px; font-weight:700; color:var(--text2); text-align:center; margin-bottom:6px;">1차 시기</div>
+          <canvas id="${prefix}cmpBub1" class="bubble-canvas"></canvas>
+        </div>
+        <div>
+          <div style="font-size:11px; font-weight:700; color:var(--text2); text-align:center; margin-bottom:6px;">2차 시기</div>
+          <canvas id="${prefix}cmpBub2" class="bubble-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+let cmpChartInsts = {};
+
+function drawCompareCharts(sc1, sc2, rows1, rows2, prefix) {
+  prefix = prefix || '';
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const textCol = isDark ? '#f8fafc' : '#0f172a';
+  const gridCol = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)';
+
+  if (cmpChartInsts[prefix]) cmpChartInsts[prefix].destroy();
+
+  const cc = document.getElementById(prefix + 'compareChart');
+  if (cc) {
+    cmpChartInsts[prefix] = new Chart(cc, {
+      type: 'bar',
+      data: {
+        labels: ['종합', '대장르', '소장르', '키워드', '언론사'],
+        datasets: [
+          { label: '1차 상태', data: [sc1.iTotal, sc1.iMaj, sc1.iSub, sc1.iKw ?? 0, sc1.iPrs ?? 0], backgroundColor: '#4f46e5', borderRadius: 4 },
+          { label: '2차 상태', data: [sc2.iTotal, sc2.iMaj, sc2.iSub, sc2.iKw ?? 0, sc2.iPrs ?? 0], backgroundColor: '#1d9e75', borderRadius: 4 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, labels: { color: textCol, font: { size: 11, weight: 'bold' } } }
+        },
+        scales: {
+          x: { ticks: { color: textCol }, grid: { display: false } },
+          y: { min: 0, max: 100, ticks: { color: textCol }, grid: { color: gridCol } }
+        }
+      }
+    });
+  }
+
+  const sc1f = computeScores(rows1), sc2f = computeScores(rows2);
+  window['cmp_bubbleData_' + prefix] = {
+    major: { r1: Object.entries(sc1f.majorCount).sort((a, b) => b[1] - a[1]), r2: Object.entries(sc2f.majorCount).sort((a, b) => b[1] - a[1]) },
+    sub: { r1: Object.entries(sc1f.subCount).sort((a, b) => b[1] - a[1]), r2: Object.entries(sc2f.subCount).sort((a, b) => b[1] - a[1]) },
+    kw: { r1: Object.entries(sc1f.kwCount).sort((a, b) => b[1] - a[1]), r2: Object.entries(sc2f.kwCount).sort((a, b) => b[1] - a[1]) },
+    press: { r1: Object.entries(sc1f.pressCount).sort((a, b) => b[1] - a[1]), r2: Object.entries(sc2f.pressCount).sort((a, b) => b[1] - a[1]) },
+  };
+  drawCmpBubbles('major', prefix);
+}
+
+function switchCmpTab(cat, btn, prefix) {
+  prefix = prefix || '';
+  btn.closest('.rs').querySelectorAll('.bubble-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  drawCmpBubbles(cat, prefix);
+}
+
+function drawCmpBubbles(cat, prefix) {
+  prefix = prefix || '';
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const bd = window['cmp_bubbleData_' + prefix];
+  if (!bd) return;
+  drawRoundPanel(prefix + 'cmpBub1', bd[cat].r1, '#4f46e5', isDark);
+  drawRoundPanel(prefix + 'cmpBub2', bd[cat].r2, '#1d9e75', isDark);
+}
+
+function drawRoundPanel(id, items, col, isDark) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const pw = cv.parentElement.clientWidth || 260, sz = pw * 2;
+  cv.width = sz; cv.height = sz;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, sz, sz);
+  const cx = sz / 2, cy = sz / 2, radius = sz * 0.44;
+
+  ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = col + (isDark ? '33' : '22'); ctx.lineWidth = 2; ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+
+  if (!items || !items.length) return;
+  const maxC = Math.max(...items.map(i => i[1]));
+  const minB = radius * 0.12, maxB = radius * 0.28, placed = [];
+
+  items.forEach((item, idx) => {
+    const [label, count] = item, r = minB + ((count / maxC) * (maxB - minB));
+    let bx, by, ok = false, tries = 0;
+    const base = (idx / items.length) * Math.PI * 2 - Math.PI / 2, step = (Math.PI * 2) / items.length;
+
+    while (tries < 200 && !ok) {
+      let angle, dist;
+      if (tries < 80) { angle = base + (Math.random() - 0.5) * step * 1.3; } else { angle = Math.random() * Math.PI * 2; }
+      dist = (r + 8) + Math.random() * (radius - r * 2 - 12);
+      bx = cx + Math.cos(angle) * dist; by = cy + Math.sin(angle) * dist;
+      if (Math.sqrt((bx - cx) ** 2 + (by - cy) ** 2) + r > radius + 2) { tries++; continue; }
+      if (!placed.some(p => { const dx = bx - p.x, dy = by - p.y; return Math.sqrt(dx * dx + dy * dy) < r + p.r + 8; })) ok = true;
       tries++;
     }
-    if(!ok){bx=cx+Math.cos(base)*Math.min(r+8+idx*4,radius-r-6);by=cy+Math.sin(base)*Math.min(r+8+idx*4,radius-r-6);}
-    placed.push({x:bx,y:by,r});
-    ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);
-    ctx.fillStyle=hexA(col,0.82*(isDark?0.8:1));ctx.fill();
-    const fs=Math.max(10,Math.min(16,r*0.42));
-    ctx.font=`500 ${fs}px sans-serif`;
-    ctx.fillStyle=col==='#534AB7'?(isDark?'#CECBF6':'#26215C'):(isDark?'#9FE1CB':'#04342C');
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    const lbl=trimText(ctx,label,r*1.7);
-    if(r>=24){ctx.fillText(lbl,bx,by-fs*0.55);ctx.font=`${Math.max(9,fs-2)}px sans-serif`;ctx.fillStyle=col==='#534AB7'?(isDark?'#AFA9EC':'#534AB7'):(isDark?'#5DCAA5':'#0F6E56');ctx.fillText('×'+count,bx,by+fs*0.6);}
-    else{ctx.fillText(lbl,bx,by);}
-    ctx.textBaseline='alphabetic';
+
+    if (!ok) { bx = cx + Math.cos(base) * Math.min(r + 8 + idx * 4, radius - r - 6); by = cy + Math.sin(base) * Math.min(r + 8 + idx * 4, radius - r - 6); }
+    placed.push({ x: bx, y: by, r });
+
+    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.fillStyle = hexA(col, 0.75 * (isDark ? 0.8 : 1)); ctx.fill();
+
+    const fs = Math.max(11, Math.min(16, r * 0.4));
+    ctx.font = `bold ${fs}px sans-serif`;
+    ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const lbl = trimText(ctx, label, r * 1.7);
+
+    if (r >= 26) {
+      ctx.fillText(lbl, bx, by - fs * 0.5);
+      ctx.font = `${Math.max(10, fs - 2)}px sans-serif`;
+      ctx.fillStyle = isDark ? '#cbd5e1' : '#475569';
+      ctx.fillText(count + '회', bx, by + fs * 0.7);
+    } else {
+      ctx.fillText(lbl, bx, by);
+    }
   });
 }
 
-function showTTab(i){
-  [0,1,2].forEach(j=>{
-    document.getElementById('tContent'+j).style.display=j===i?'block':'none';
-    const btn=document.getElementById('tTab'+j);
-    if(btn)btn.classList.toggle('active',j===i);
+function showTTab(i) {
+  [0, 1, 2].forEach(j => {
+    document.getElementById('tContent' + j).style.display = j === i ? 'block' : 'none';
+    const btn = document.getElementById('tTab' + j);
+    if (btn) btn.classList.toggle('active', j === i);
   });
 }
 
-/* ── 교사: 전체 집계 ── */
-function loadTeacher(){
-  tCharts.forEach(c=>{try{c.destroy();}catch(e){}});tCharts=[];
+// 구글 스프레드시트에서 학급 전체 데이터 가져오기
+function syncFromGoogleSheet() {
+  const gasUrl = getGasUrl();
+  if (!gasUrl) return Promise.resolve(false);
 
-  const records=loadRecords();
-  const emptyMsg=`<div class="card"><div class="empty-msg">아직 저장된 학생 데이터가 없어요.<br>학생들이 분석 후 저장하면 여기에 나타납니다.</div></div>`;
+  return fetch(gasUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data)) {
+        cloudRecords = data;
+        return true;
+      }
+      return false;
+    })
+    .catch(err => {
+      console.error("구글 시트 동기화 에러: ", err);
+      return false;
+    });
+}
 
-  if(!records.length){
-    document.getElementById('tContent0').innerHTML=emptyMsg;
-    document.getElementById('tContent1').innerHTML=emptyMsg;
-    document.getElementById('tContent2').innerHTML=emptyMsg;
+function loadTeacher() {
+  tCharts.forEach(c => { try { c.destroy(); } catch (e) { } }); tCharts = [];
+  
+  const gasUrl = getGasUrl();
+  if (gasUrl) {
+    // 1. 구글 스프레드시트 연동 중이면 동기화 요청 실행 후 렌더링
+    syncFromGoogleSheet().then(success => {
+      renderTeacherContent();
+      if (!success) {
+        console.warn("구글 클라우드 동기화 실패, 로컬 임시 데이터로 표현됩니다.");
+      }
+    });
+  } else {
+    // 2. 단독 모드일 땐 기존 로컬 데이터 기반 렌더링
+    renderTeacherContent();
+  }
+}
+
+// 교사 페이지 화면 렌더링 세부 함수
+function renderTeacherContent() {
+  const records = loadRecords();
+  const emptyMsg = `<div class="card"><div class="empty-msg">아직 제출된 학생 데이터가 없습니다.<br>스프레드시트가 비어있거나, 학생 모드에서 자가 진단을 먼저 저장해 주세요.</div></div>`;
+
+  if (!records.length) {
+    document.getElementById('tContent0').innerHTML = emptyMsg;
+    document.getElementById('tContent1').innerHTML = emptyMsg;
+    document.getElementById('tContent2').innerHTML = emptyMsg;
     return;
   }
 
-  const r1records=records.filter(r=>r.round===1||!r.round);
-  const r2records=records.filter(r=>r.round===2);
-  const r1rows=r1records.flatMap(r=>r.rows);
-  const r2rows=r2records.flatMap(r=>r.rows);
-  const allRows=records.flatMap(r=>r.rows);
+  const r1records = records.filter(r => r.round === 1 || !r.round);
+  const r2records = records.filter(r => r.round === 2);
+  const r1rows = r1records.flatMap(r => r.rows);
+  const r2rows = r2records.flatMap(r => r.rows);
 
-  function studentListHTML(recs){
-    if(!recs.length)return`<div class="card"><div class="empty-msg">해당 회차 데이터가 없어요.</div></div>`;
-    let html=`<div class="card" style="margin-top:14px;"><div class="st">학생별 결과</div>`;
-    recs.forEach(rec=>{
-      const sc=rec.scores||computeScores(rec.rows);
-      html+=`<div class="student-row">
+  function studentListHTML(recs) {
+    if (!recs.length) return `<div class="card"><div class="empty-msg">제출 내역 없음</div></div>`;
+    let html = `<div class="card" style="margin-top:16px;"><div class="st">📋 학생별 분석 요약</div>`;
+    recs.forEach(rec => {
+      const sc = rec.scores || computeScores(rec.rows);
+      html += `
+      <div class="student-row">
         <div class="avatar">${escHtml(rec.name[0])}</div>
-        <div style="flex:1;min-width:80px;">
-          <div style="font-size:13px;font-weight:500;">${escHtml(rec.name)}</div>
-          <div style="font-size:11px;color:var(--text3);">${new Date(rec.timestamp).toLocaleString('ko-KR')} · 뉴스 ${rec.rows.length}개</div>
+        <div style="flex:1; min-width:80px;">
+          <div style="font-size:13px; font-weight:700;">${escHtml(rec.name)} 학생</div>
+          <div style="font-size:11px; color:var(--text3);">${new Date(rec.timestamp).toLocaleString('ko-KR')} · 기록 건수 ${rec.rows.length}개</div>
         </div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;">
-          <span class="badge" style="background:${barCol(sc.iTotal)}22;color:${barCol(sc.iTotal)};">종합 ${sc.iTotal}</span>
-          <span class="badge" style="background:${barCol(sc.iMaj)}22;color:${barCol(sc.iMaj)};">카테고리 ${sc.iMaj}</span>
-          <span class="badge" style="background:${barCol(sc.iSub)}22;color:${barCol(sc.iSub)};">세부 ${sc.iSub}</span>
-          ${sc.iPrs!==null?`<span class="badge" style="background:${barCol(sc.iPrs)}22;color:${barCol(sc.iPrs)};">언론사 ${sc.iPrs}</span>`:''}
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <span class="badge" style="background:${barCol(sc.iTotal)}22; color:${barCol(sc.iTotal)};">종합 ${sc.iTotal}</span>
+          <span class="badge" style="background:${barCol(sc.iMaj)}22; color:${barCol(sc.iMaj)};">대장르 ${sc.iMaj}</span>
+          <span class="badge" style="background:${barCol(sc.iSub)}22; color:${barCol(sc.iSub)};">세부 ${sc.iSub}</span>
+          ${sc.iPrs !== null ? `<span class="badge" style="background:${barCol(sc.iPrs)}22; color:${barCol(sc.iPrs)};">언론사 ${sc.iPrs}</span>` : ''}
         </div>
       </div>`;
     });
-    html+=`</div>`;
+    html += `</div>`;
     return html;
   }
 
-  const statBar=(recs,rows)=>`<div class="card" style="margin-bottom:12px;">
-    <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">참여 현황</div>
-    <div style="font-size:18px;font-weight:600;">${recs.length}명 <span style="font-size:13px;color:var(--text2);">· 뉴스 ${rows.length}개</span></div>
+  const statBar = (recs, rows) => `
+  <div class="card" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <div style="font-size:11px; color:var(--text3); font-weight:700; text-transform:uppercase;">현재 실시간 집계 정보</div>
+      <div style="font-size:20px; font-weight:800; color:var(--primary);">${recs.length}명 참여 <span style="font-size:13px; color:var(--text2); font-weight:500;">· 뉴스 총 ${rows.length}건 정밀 정규화 연산</span></div>
+    </div>
   </div>`;
 
-  if(r1rows.length){
-    const sc1=computeScores(r1rows);
-    document.getElementById('tContent0').innerHTML=statBar(r1records,r1rows)+renderResultHTML(sc1,r1rows,'t_r1_',null,true)+studentListHTML(r1records);
-    setTimeout(()=>drawCharts(sc1,r1rows,'t_r1_',tCharts,null,true),150);
-  }else{
-    document.getElementById('tContent0').innerHTML=`<div class="card"><div class="empty-msg">1차 분석 데이터가 없어요.</div></div>`;
+  if (r1rows.length) {
+    const sc1 = computeScores(r1rows);
+    document.getElementById('tContent0').innerHTML = statBar(r1records, r1rows) + renderResultHTML(sc1, r1rows, 't_r1_', null, true) + studentListHTML(r1records);
+    setTimeout(() => drawCharts(sc1, r1rows, 't_r1_', tCharts, null, true), 150);
+  } else {
+    document.getElementById('tContent0').innerHTML = `<div class="card"><div class="empty-msg">아직 1차 분석 데이터가 없습니다.</div></div>`;
   }
 
-  if(r2rows.length){
-    const sc2=computeScores(r2rows);
-    document.getElementById('tContent1').innerHTML=statBar(r2records,r2rows)+renderResultHTML(sc2,r2rows,'t_r2_',null,true)+studentListHTML(r2records);
-    setTimeout(()=>drawCharts(sc2,r2rows,'t_r2_',tCharts,null,true),200);
-  }else{
-    document.getElementById('tContent1').innerHTML=`<div class="card"><div class="empty-msg">2차 분석 데이터가 없어요.</div></div>`;
+  if (r2rows.length) {
+    const sc2 = computeScores(r2rows);
+    document.getElementById('tContent1').innerHTML = statBar(r2records, r2rows) + renderResultHTML(sc2, r2rows, 't_r2_', null, true) + studentListHTML(r2records);
+    setTimeout(() => drawCharts(sc2, r2rows, 't_r2_', tCharts, null, true), 200);
+  } else {
+    document.getElementById('tContent1').innerHTML = `<div class="card"><div class="empty-msg">아직 2차 분석 데이터가 없습니다.</div></div>`;
   }
 
-  if(r1rows.length&&r2rows.length){
-    const sc1=computeScores(r1rows),sc2=computeScores(r2rows);
-    const tsc1={iTotal:sc1.iTotal,iMaj:sc1.iMaj,iSub:sc1.iSub,iKw:sc1.iKw,iPrs:sc1.iPrs};
-    const tsc2={iTotal:sc2.iTotal,iMaj:sc2.iMaj,iSub:sc2.iSub,iKw:sc2.iKw,iPrs:sc2.iPrs};
-    document.getElementById('tContent2').innerHTML=`<div class="card" style="margin-bottom:12px;">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">비교 현황</div>
-      <div style="font-size:18px;font-weight:600;">${r1records.length}명(1차) vs ${r2records.length}명(2차)</div>
-    </div>`+renderCompareHTML(tsc1,tsc2,r1rows,r2rows,'t_cmp_');
-    setTimeout(()=>drawCompareCharts(tsc1,tsc2,r1rows,r2rows,'t_cmp_'),250);
-  }else{
-    document.getElementById('tContent2').innerHTML=`<div class="card"><div class="empty-msg">1차와 2차 데이터가 모두 있어야 비교할 수 있어요.</div></div>`;
+  if (r1rows.length && r2rows.length) {
+    const sc1 = computeScores(r1rows), sc2 = computeScores(r2rows);
+    const tsc1 = { iTotal: sc1.iTotal, iMaj: sc1.iMaj, iSub: sc1.iSub, iKw: sc1.iKw, iPrs: sc1.iPrs };
+    const tsc2 = { iTotal: sc2.iTotal, iMaj: sc2.iMaj, iSub: sc2.iSub, iKw: sc2.iKw, iPrs: sc2.iPrs };
+    document.getElementById('tContent2').innerHTML = `
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-size:11px; color:var(--text3); font-weight:700;">학급 변화 지수 대조</div>
+      <div style="font-size:18px; font-weight:800;">1차 집계 (${r1records.length}명) vs 2차 집계 (${r2records.length}명) 비교</div>
+    </div>` + renderCompareHTML(tsc1, tsc2, r1rows, r2rows, 't_cmp_');
+    setTimeout(() => drawCompareCharts(tsc1, tsc2, r1rows, r2rows, 't_cmp_'), 250);
+  } else {
+    document.getElementById('tContent2').innerHTML = `<div class="card"><div class="empty-msg">학급 통계 전·후 대조를 확인하시려면 학생들의 1차 및 2차 저장 이력이 동시 존재해야 합니다.</div></div>`;
   }
 }
 
-function clearAll(){
-  localStorage.removeItem(STORAGE_KEY);
-  const emptyMsg=`<div class="card"><div class="empty-msg">아직 저장된 학생 데이터가 없어요.<br>학생들이 분석 후 저장하면 여기에 나타납니다.</div></div>`;
-  [0,1,2].forEach(i=>{const el=document.getElementById('tContent'+i);if(el)el.innerHTML=emptyMsg;});
-  tCharts.forEach(c=>{try{c.destroy();}catch(e){}});tCharts=[];
-}
-
-/* 초기화 */
-for(let i=0;i<4;i++)addRow();
+/* 초기화 시 기본적으로 수동 4개 행 세팅 */
+for (let i = 0; i < 4; i++) addRow();
 </script>
 </body>
 </html>
