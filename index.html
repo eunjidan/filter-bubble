@@ -470,8 +470,9 @@
     border-radius: var(--radius);
   }
 
-  /* 구글 시트 주소 설정 섹션 */
+  /* 구글 시트 주소 설정 섹션 - UI상 간결함을 위해 기본적으로 숨김 처리(display: none) */
   .api-config-box {
+    display: none; 
     background: #fafaf9;
     border: 1px solid var(--border2);
     padding: 16px;
@@ -505,7 +506,7 @@
     <p class="subtitle">내가 시청한 뉴스 알고리즘의 편향 정도와 에코챔버 현상을 자가 진단해보세요</p>
   </header>
 
-  <!-- 교사/통합 연동용 구글 Apps Script 주소 입력 영역 -->
+  <!-- 구글 Apps Script 연동 데이터 설정 박스 (숨김 처리됨. 다시 보이고 싶다면 style의 "display: none;"을 제거하세요) -->
   <div class="api-config-box">
     <div style="font-weight: 700; margin-bottom: 6px; color: var(--primary);">📊 구글 스프레드시트 연동 설정</div>
     <div style="font-size:11px; color:var(--text2); margin-bottom: 10px; line-height:1.4;">
@@ -623,7 +624,7 @@
       </div>
 
       <button id="saveMainBtn" class="btn-primary" onclick="analyzeAndSave()" style="width:100%; padding:14px; font-size:15px; border-radius: var(--radius-lg);">
-        💾 시청 데이터 분석 및 저장하기
+        💾 분석 및 저장하기
       </button>
     </div>
 
@@ -793,6 +794,7 @@ function addRow(ch = '', major = MAJORS[0], sub = TREE[MAJORS[0]][0], kw = '') {
   renderRows();
 }
 
+// 스크롤 튀는 현상을 막기 위해 row 제거 시 포커싱 복구
 function removeRow(id) {
   rows = rows.filter(r => r.id !== id);
   renderRows();
@@ -809,7 +811,7 @@ function renderRows() {
         ${TREE[r.major].map(s => `<option value="${s}"${s === r.sub ? ' selected' : ''}>${s}</option>`).join('')}
       </select>
       <input class="v-kw" type="text" value="${escHtml(r.kw)}" placeholder="예: 선거, 주식 (쉼표 구분)" oninput="updateRow(${r.id},'kw',this.value)" />
-      <button onclick="removeRow(${r.id})" title="행 삭제" style="padding:10px 14px; border-color:var(--danger-text); color:var(--danger-text);">✕</button>
+      <button onclick="removeRow(${r.id}); return false;" title="행 삭제" style="padding:10px 14px; border-color:var(--danger-text); color:var(--danger-text);">✕</button>
     </div>`).join('');
 }
 
@@ -1017,10 +1019,10 @@ function renderResultHTML(sc, rows, prefix, otherSc, teacherMode) {
     <div class="rs">
       <div class="st">📊 버블 편향 분포 시각화</div>
       <div style="display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap;">
-        <button class="bubble-tab-btn active" onclick="switchBubbleTab('${prefix}','major',this)" style="font-size:11px; padding:6px 12px;">대카테고리</button>
-        <button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','sub',this)" style="font-size:11px; padding:6px 12px;">세부카테고리</button>
-        ${hasKw ? `<button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','kw',this)" style="font-size:11px; padding:6px 12px;">주요 키워드</button>` : ''}
-        ${hasPress ? `<button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','press',this)" style="font-size:11px; padding:6px 12px;">언론 채널사</button>` : ''}
+        <button class="bubble-tab-btn active" onclick="switchBubbleTab('${prefix}','major',this); return false;" style="font-size:11px; padding:6px 12px;">대카테고리</button>
+        <button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','sub',this); return false;" style="font-size:11px; padding:6px 12px;">세부카테고리</button>
+        ${hasKw ? `<button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','kw',this); return false;" style="font-size:11px; padding:6px 12px;">주요 키워드</button>` : ''}
+        ${hasPress ? `<button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','press',this); return false;" style="font-size:11px; padding:6px 12px;">언론 채널사</button>` : ''}
       </div>
       
       ${teacherMode ? `
@@ -1395,10 +1397,10 @@ function renderCompareHTML(sc1, sc2, rows1, rows2, prefix) {
     <div class="rs">
       <div class="st">⚖️ 시각적 버블 체감도 변화 비교</div>
       <div style="display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;">
-        <button class="bubble-tab-btn active" onclick="switchCmpTab('major',this,'${prefix}')" style="font-size:11px; padding:6px 12px;">대카테고리</button>
-        <button class="bubble-tab-btn" onclick="switchCmpTab('sub',this,'${prefix}')" style="font-size:11px; padding:6px 12px;">세부카테고리</button>
-        ${hasKw ? `<button class="bubble-tab-btn" onclick="switchCmpTab('kw',this,'${prefix}')" style="font-size:11px; padding:6px 12px;">키워드</button>` : ''}
-        ${hasPress ? `<button class="bubble-tab-btn" onclick="switchCmpTab('press',this,'${prefix}')" style="font-size:11px; padding:6px 12px;">채널사</button>` : ''}
+        <button class="bubble-tab-btn active" onclick="switchCmpTab('major',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">대카테고리</button>
+        <button class="bubble-tab-btn" onclick="switchCmpTab('sub',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">세부카테고리</button>
+        ${hasKw ? `<button class="bubble-tab-btn" onclick="switchCmpTab('kw',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">키워드</button>` : ''}
+        ${hasPress ? `<button class="bubble-tab-btn" onclick="switchCmpTab('press',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">채널사</button>` : ''}
       </div>
       <div style="display:flex; gap:12px; margin-bottom:12px; font-size:11px; color:var(--text2); align-items:center;">
         <span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#4f46e5; margin-right:4px; vertical-align:middle;"></span>1차 시기</span>
