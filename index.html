@@ -713,8 +713,6 @@ function saveGasUrl(url) {
 }
 
 function getGasUrl() {
-  // 1순위: 개별 사용자가 직접 입력한 오버라이드 값 (localStorage)
-  // 2순위: 코드 작성자가 박아놓은 배포용 기본값 (DEFAULT_GAS_URL)
   return localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL || "";
 }
 
@@ -793,7 +791,6 @@ function addRow(ch = '', major = MAJORS[0], sub = TREE[MAJORS[0]][0], kw = '') {
   renderRows();
 }
 
-// 스크롤 튀는 현상을 막기 위해 row 제거 시 포커싱 복구
 function removeRow(id) {
   rows = rows.filter(r => r.id !== id);
   renderRows();
@@ -852,7 +849,6 @@ function selectRound(r) {
   document.getElementById('roundHint').textContent = r === 1 ? '평소 알고리즘 그대로 편향을 진단할 경우 1차를 선택하세요.' : '구독 취소 또는 검색 교란 운동을 마친 최근의 상태를 측정하려면 2차를 선택하세요.';
 }
 
-// 탭 전환 시 화면이 최상단으로 강제로 튀어 올라가는 현상 수정
 function showSTab(i) {
   ['sInput', 'sResult1', 'sResult2', 'sCompare'].forEach((id, idx) => {
     const el = document.getElementById(id);
@@ -863,7 +859,6 @@ function showSTab(i) {
     if (btn) btn.classList.toggle('active', t === i);
   }
   
-  // 데이터 입력 탭이 아닐 경우(결과물 페이지일 때), 최상단 윈도우 스크롤을 막고 분석 결과 탭 헤더로 뷰를 매끄럽게 가져옵니다.
   if (i > 0) {
     const tabHeader = document.getElementById('studentTabHeader');
     if (tabHeader) {
@@ -872,76 +867,66 @@ function showSTab(i) {
   }
 }
 
-// 가상 샘플 데이터 자동 주입 핸들러 (이름 빈칸 고정, 1차 3종 / 2차 2종 구성)
 function injectSample(type) {
   let sampleData = [];
-
-  // 학생 이름은 수동 입력을 유도하기 위해 빈칸 처리
   document.getElementById('studentName').value = '';
 
   if (type === 'echo-chamber') {
-    // 1차 정치 에코챔버형
     sampleData = [
-      { ch: '가로세로연구소', major: '정치', sub: '국회/정당', kw: '선거, 정당, 국회' },
-      { ch: '김어준의 겸손은힘들다 뉴스공장', major: '정치', sub: '국회/정당', kw: '선거, 탄핵, 대표' },
-      { ch: '신의한수', major: '정치', sub: '정치일반', kw: '폭로, 정당, 윤석열' },
-      { ch: 'KBS 뉴스', major: '정치', sub: '국방/외교', kw: '외교, 순방, 미국' },
-      { ch: '새날', major: '정치', sub: '정치일반', kw: '탄핵, 수사, 이재명' }
+      { ch: '가로세로연구소', major: '정치', sub: '국회/정당', kw: '선거, 정당, 국회, 청문회, 의혹' },
+      { ch: '김어준의 겸손은힘들다 뉴스공장', major: '정치', sub: '국회/정당', kw: '선거, 탄핵, 대표, 여론조사, 검찰' },
+      { ch: '신의한수', major: '정치', sub: '정치일반', kw: '폭로, 정당, 수사, 비리, 단독' },
+      { ch: 'KBS 뉴스', major: '정치', sub: '국방/외교', kw: '외교, 순방, 미국, 동맹, 안보' },
+      { ch: '새날', major: '정치', sub: '정치일반', kw: '탄핵, 수사, 국조, 이재명, 정당' }
     ];
     selectRound(1);
   } else if (type === 'entertainment') {
-    // 1차 대중문화/엔터형
     sampleData = [
-      { ch: '넷플릭스 코리아', major: '엔터테인먼트', sub: '영화', kw: '영화, 시리즈, 개봉작' },
-      { ch: '디즈니 플러스', major: '엔터테인먼트', sub: '드라마', kw: '정주행, 예고편, 독점' },
-      { ch: '디스패치 Star', major: '엔터테인먼트', sub: '연예소식', kw: '열애설, 촬영장, 비하인드' },
-      { ch: 'Mnet K-POP', major: '엔터테인먼트', sub: '음악', kw: '뮤직비디오, 아이돌, 직캠' },
-      { ch: '영화 분석관', major: '엔터테인먼트', sub: '영화', kw: '결말해석, 영화추천, 스포일러' }
+      { ch: '넷플릭스 코리아', major: '엔터테인먼트', sub: '영화', kw: '영화, 시리즈, 개봉작, 감독, 명작' },
+      { ch: '디즈니 플러스', major: '엔터테인먼트', sub: '드라마', kw: '정주행, 예고편, 독점, 스트리밍, 명대사' },
+      { ch: '디스패치 Star', major: '엔터테인먼트', sub: '연예소식', kw: '열애설, 촬영장, 비하인드, 열애, 복귀' },
+      { ch: 'Mnet K-POP', major: '엔터테인먼트', sub: '음악', kw: '뮤직비디오, 아이돌, 직캠, 무대, 음원' },
+      { ch: '영화 분석관', major: '엔터테인먼트', sub: '영화', kw: '결말해석, 영화추천, 스포일러, 리뷰, 해석' }
     ];
     selectRound(1);
   } else if (type === 'it-dopamine') {
-    // 1차 IT/과학형
     sampleData = [
-      { ch: '3프로TV', major: '경제', sub: '산업/재계', kw: '엔비디아, 반도체' },
-      { ch: '테크튜브', major: 'IT/과학', sub: '모바일', kw: '스마트폰, 갤럭시, 애플' },
-      { ch: 'itSub잇섭', major: 'IT/과학', sub: '인터넷/SNS', kw: '인공지능, ChatGPT, AI' },
-      { ch: '사피엔스 스튜디오', major: 'IT/과학', sub: '과학일반', kw: '양자역학, 물리, 과학' },
-      { ch: '디에디트 THE EDIT', major: 'IT/과학', sub: '컴퓨터', kw: '노트북, 맥북, 가젯' }
+      { ch: '3프로TV', major: '경제', sub: '산업/재계', kw: '엔비디아, 반도체, 테크, 나스닥, AI' },
+      { ch: '테크튜브', major: 'IT/과학', sub: '모바일', kw: '스마트폰, 갤럭시, 애플, 사전예약, 리뷰' },
+      { ch: 'itSub잇섭', major: 'IT/과학', sub: '인터넷/SNS', kw: '인공지능, ChatGPT, AI, 언박싱, 신기술' },
+      { ch: '사피엔스 스튜디오', major: 'IT/과학', sub: '과학일반', kw: '양자역학, 물리, 과학, 실험, 아인슈타인' },
+      { ch: '디에디트 THE EDIT', major: 'IT/과학', sub: '컴퓨터', kw: '노트북, 맥북, 가젯, 리뷰, 디자인' }
     ];
     selectRound(1);
   } else if (type === 'diversified-escape') {
-    // 2차 알고리즘 다변화 극복형 (정치 + IT + 대중문화 융합 시청)
     sampleData = [
-      { ch: '김어준의 겸손은힘들다 뉴스공장', major: '정치', sub: '국회/정당', kw: '선거, 탄핵' },
-      { ch: 'itSub잇섭', major: 'IT/과학', sub: '인터넷/SNS', kw: '인공지능, AI, 스마트기기' },
-      { ch: '넷플릭스 코리아', major: '엔터테인먼트', sub: '영화', kw: '정주행, 영화추천' },
-      { ch: 'SBS 뉴스', major: '사회', sub: '환경', kw: '기후위기, 탄소배출' },
-      { ch: '슈카월드', major: '생활/문화', sub: '생활문화일반', kw: '트렌드, 문화현상' }
+      { ch: '김어준의 겸손은힘들다 뉴스공장', major: '정치', sub: '국회/정당', kw: '선거, 탄핵, 뉴스' },
+      { ch: 'itSub잇섭', major: 'IT/과학', sub: '인터넷/SNS', kw: '인공지능, AI, 스마트기기, 얼리어답터' },
+      { ch: '넷플릭스 코리아', major: '엔터테인먼트', sub: '영화', kw: '정주행, 영화추천, 시나리오' },
+      { ch: 'SBS 뉴스', major: '사회', sub: '환경', kw: '기후위기, 탄소배출, 북극곰' },
+      { ch: '슈카월드', major: '생활/문화', sub: '생활문화일반', kw: '트렌드, 문화현상, 고령화' }
     ];
     selectRound(2);
   } else if (type === 'public-docu') {
-    // 2차 공영/시사교양 정화형
     sampleData = [
-      { ch: 'KBS 뉴스', major: '정치', sub: '행정', kw: '정부, 뉴스, 정책' },
-      { ch: 'EBS 다큐', major: '사회', sub: '교육', kw: '다큐멘터리, 교육, 역사' },
-      { ch: 'YTN', major: '사회', sub: '언론', kw: '뉴스, 보도, 속보' },
-      { ch: '사피엔스 스튜디오', major: 'IT/과학', sub: '과학일반', kw: '인문학, 물리, 우주' },
-      { ch: '국립중앙박물관', major: '생활/문화', sub: '생활문화일반', kw: '역사, 전시, 문화재' }
+      { ch: 'KBS 뉴스', major: '정치', sub: '행정', kw: '정부, 뉴스, 정책, 브리핑' },
+      { ch: 'EBS 다큐', major: '사회', sub: '교육', kw: '다큐멘터리, 교육, 역사, 인문학, 심리' },
+      { ch: 'YTN', major: '사회', sub: '언론', kw: '뉴스, 보도, 속보, 사회' },
+      { ch: '사피엔스 스튜디오', major: 'IT/과학', sub: '과학일반', kw: '인문학, 물리, 우주, 과학, 천체' },
+      { ch: '국립중앙박물관', major: '생활/문화', sub: '생활문화일반', kw: '역사, 전시, 문화재, 고궁, 예술' }
     ];
     selectRound(2);
   } else if (type === 'balanced') {
-    // 2차 다중 균형 시청형 (맨 마지막에 위치)
     sampleData = [
-      { ch: 'KBS 뉴스', major: '정치', sub: '행정', kw: '정책, 정부' },
-      { ch: '3프로TV', major: '경제', sub: '금융', kw: '금리, 주식, 환율' },
-      { ch: 'SBS 뉴스', major: '사회', sub: '환경', kw: '기후변화, 탄소배출' },
-      { ch: '슈카월드', major: '생활/문화', sub: '생활문화일반', kw: '트렌드, 문화' },
-      { ch: '지식해적단', major: '세계', sub: '국제일반', kw: '역사, 세계사' }
+      { ch: 'KBS 뉴스', major: '정치', sub: '행정', kw: '정책, 정부, 입법' },
+      { ch: '3프로TV', major: '경제', sub: '금융', kw: '금리, 주식, 환율, 연준' },
+      { ch: 'SBS 뉴스', major: '사회', sub: '환경', kw: '기후변화, 탄소배출, 이상기후' },
+      { ch: '슈카월드', major: '생활/문화', sub: '생활문화일반', kw: '트렌드, 문화, 산업, 역사' },
+      { ch: '지식해적단', major: '세계', sub: '국제일반', kw: '역사, 세계사, 전쟁, 무역, 영토' }
     ];
     selectRound(2);
   }
 
-  // 리스트 초기화 후 주입
   rows = [];
   sampleData.forEach(d => {
     const id = Date.now() + Math.random();
@@ -1025,7 +1010,9 @@ function renderResultHTML(sc, rows, prefix, otherSc, teacherMode) {
     </div>
 
     <div class="rs">
-      <div class="st">📊 버블 편향 분포 시각화</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+        <div class="st" style="margin-bottom:0;">☁️ 알고리즘 워드클라우드 시각화</div>
+      </div>
       <div style="display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap;">
         <button class="bubble-tab-btn active" onclick="switchBubbleTab('${prefix}','major',this); return false;" style="font-size:11px; padding:6px 12px;">대주제</button>
         <button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','sub',this); return false;" style="font-size:11px; padding:6px 12px;">소주제</button>
@@ -1034,21 +1021,21 @@ function renderResultHTML(sc, rows, prefix, otherSc, teacherMode) {
       </div>
       
       ${teacherMode ? `
-      <div style="font-size:11px; color:var(--text3); margin-bottom:10px;">버블의 직경 크기 = 빈출 횟수 비례</div>
+      <div style="font-size:11px; color:var(--text3); margin-bottom:10px;">데이터 분포 밀집도 비례 크기 조정</div>
       <canvas id="${prefix}cvMine" class="bubble-canvas" style="max-width:400px; margin: 0 auto;"></canvas>
       ` : `
       <div style="display:flex; gap:14px; margin-bottom:14px; font-size:11px; color:var(--text2); flex-wrap:wrap; align-items:center;">
-        <span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#4f46e5; margin-right:4px; vertical-align:middle;"></span>나의 알고리즘 버블</span>
-        ${hasOther ? `<span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#888780; opacity:0.6; margin-right:4px; vertical-align:middle;"></span>학급 평균 분포</span>` : ''}
+        <span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#4f46e5; margin-right:4px; vertical-align:middle;"></span>나의 알고리즘 분포</span>
+        ${hasOther ? `<span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#64748b; opacity:0.6; margin-right:4px; vertical-align:middle;"></span>학급 평균 분포</span>` : ''}
       </div>
       ${hasOther ? `
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
         <div>
-          <div style="font-size:11px; font-weight:700; color:var(--text2); text-align:center; margin-bottom:6px;">나의 버블</div>
+          <div style="font-size:11px; font-weight:700; color:var(--text2); text-align:center; margin-bottom:6px;">나의 분포</div>
           <canvas id="${prefix}cvMine" class="bubble-canvas"></canvas>
         </div>
         <div>
-          <div style="font-size:11px; font-weight:700; color:var(--text2); text-align:center; margin-bottom:6px;">우리 학급 버블</div>
+          <div style="font-size:11px; font-weight:700; color:var(--text2); text-align:center; margin-bottom:6px;">우리 학급 분포</div>
           <canvas id="${prefix}cvClass" class="bubble-canvas"></canvas>
         </div>
       </div>
@@ -1077,12 +1064,15 @@ function drawCharts(sc, rows, prefix, destroyList, otherSc, teacherMode) {
 
   window[prefix + '_bubbleData'] = bubbleData;
   window[prefix + '_teacherMode'] = !!teacherMode;
+  window[prefix + '_activeTab'] = 'major';
   setTimeout(() => drawSideBySide(prefix, bubbleData.major, isDark), 50);
 }
 
 function switchBubbleTab(prefix, cat, btn) {
   btn.closest('.rs').querySelectorAll('.bubble-tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  
+  window[prefix + '_activeTab'] = cat;
   const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
   const bd = window[prefix + '_bubbleData'];
   if (bd && bd[cat]) drawSideBySide(prefix, bd[cat], isDark);
@@ -1092,7 +1082,6 @@ function drawSideBySide(prefix, data, isDark) {
   const cvMine = document.getElementById(prefix + 'cvMine');
   if (!cvMine) return;
   const teacherMode = window[prefix + '_teacherMode'];
-  const mineSet = new Set(data.mine.map(x => x[0]));
   let el = cvMine.parentElement;
   let pw = 0;
   while (el && !pw) { pw = el.clientWidth; el = el.parentElement; }
@@ -1100,90 +1089,110 @@ function drawSideBySide(prefix, data, isDark) {
   const cvClass = document.getElementById(prefix + 'cvClass');
   const hasOther = !!cvClass;
 
-  if (teacherMode || !hasOther) {
-    const sz = pw * 2;
-    cvMine.width = sz; cvMine.height = sz; 
-    drawPanel(cvMine, data.mine, '#4f46e5', mineSet, false, isDark, 1.4); 
-  } else {
-    const sz = pw * 2;
-    cvMine.width = sz; cvMine.height = sz;
-    if (cvClass) { cvClass.width = sz; cvClass.height = sz; }
-    drawPanel(cvMine, data.mine, '#4f46e5', mineSet, false, isDark, 1.4);
-    if (cvClass) drawPanel(cvClass, data.cls, '#64748b', mineSet, true, isDark, 1.4);
+  const sz = pw * 2;
+  cvMine.width = sz; cvMine.height = sz;
+  if (cvClass) { cvClass.width = sz; cvClass.height = sz; }
+
+  drawWordCloudPanel(cvMine, data.mine, '#4f46e5', isDark);
+  if (cvClass && hasOther) {
+    drawWordCloudPanel(cvClass, data.cls, '#64748b', isDark);
   }
 }
 
-function drawPanel(canvas, items, baseCol, mineSet, markOverlap, isDark, scale) {
-  scale = scale || 1;
+// ==========================================
+// ☁️ 워드클라우드(Word Cloud) 전용 캔버스 렌더링 엔진
+// ==========================================
+function drawWordCloudPanel(canvas, items, baseCol, isDark) {
   const ctx = canvas.getContext('2d');
   const sz = canvas.width;
   ctx.clearRect(0, 0, sz, sz);
+  
   const cx = sz / 2, cy = sz / 2, radius = sz * 0.44;
 
   ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.strokeStyle = baseCol + (isDark ? '33' : '22');
   ctx.lineWidth = 2; ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
 
-  if (!items.length) {
+  if (!items || !items.length) {
     ctx.font = `${sz * 0.05}px sans-serif`;
     ctx.fillStyle = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('데이터 없음', cx, cy);
     return;
   }
-  placePanelBubbles(ctx, items, cx, cy, radius, baseCol, mineSet, markOverlap, isDark, scale);
-}
 
-function placePanelBubbles(ctx, items, cx, cy, radius, baseCol, mineSet, markOverlap, isDark, scale) {
-  const MINE_COL = '#4f46e5';
-  const maxC = Math.max(...items.map(i => i[1]));
-  const minB = radius * 0.12, maxB = radius * 0.28;
-  const placed = [];
+  const placedWords = [];
+  const maxVal = Math.max(...items.map(x => x[1]));
+  const minVal = Math.min(...items.map(x => x[1]));
+  
+  const maxFs = sz * 0.075, minFs = sz * 0.028;
+
+  const cloudColors = isDark 
+    ? ['#818cf8', '#a78bfa', '#f472b6', '#38bdf8', '#fbbf24', '#4ade80', '#fb923c']
+    : ['#4f46e5', '#7c3aed', '#db2777', '#0284c7', '#d97706', '#059669', '#ea580c'];
 
   items.forEach((item, idx) => {
-    const [label, count] = item;
-    const isOverlap = markOverlap && mineSet.has(label);
-    const r = minB + ((count / maxC) * (maxB - minB));
-    let bx, by, ok = false, tries = 0;
-    const base = (idx / items.length) * Math.PI * 2 - Math.PI / 2;
-    const step = (Math.PI * 2) / items.length;
-
-    while (tries < 200 && !ok) {
-      let angle, dist;
-      if (tries < 80) { angle = base + (Math.random() - 0.5) * step * 1.3; } else { angle = Math.random() * Math.PI * 2; }
-      dist = (r + 8) + Math.random() * (radius - r * 2 - 12);
-      bx = cx + Math.cos(angle) * dist; by = cy + Math.sin(angle) * dist;
-      if (Math.sqrt((bx - cx) ** 2 + (by - cy) ** 2) + r > radius + 2) { tries++; continue; }
-      if (!placed.some(p => { const dx = bx - p.x, dy = by - p.y; return Math.sqrt(dx * dx + dy * dy) < r + p.r + 8; })) ok = true;
-      tries++;
-    }
-
-    if (!ok) { bx = cx + Math.cos(base) * Math.min(r + 8 + idx * 4, radius - r - 6); by = cy + Math.sin(base) * Math.min(r + 8 + idx * 4, radius - r - 6); }
-    placed.push({ x: bx, y: by, r });
-
-    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2);
-    ctx.fillStyle = hexA(isOverlap ? MINE_COL : baseCol, (isOverlap ? 0.85 : 0.6) * (isDark ? 0.8 : 1));
-    ctx.fill();
-
-    if (isOverlap) {
-      ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2);
-      ctx.strokeStyle = MINE_COL; ctx.lineWidth = Math.max(2, r * 0.08); ctx.stroke();
-    }
-
-    const fs = Math.max(9.5, Math.min(13.5 * scale, r * 0.33)) * scale;
-    ctx.font = `bold ${fs}px sans-serif`;
-    ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const [text, count] = item;
     
-    const lbl = trimText(ctx, label, r * 1.55);
+    const ratio = maxVal === minVal ? 0.5 : (count - minVal) / (maxVal - minVal);
+    const fs = Math.round(minFs + ratio * (maxFs - minFs));
+    
+    ctx.font = `bold ${fs}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const metrics = ctx.measureText(text);
+    const wordWidth = metrics.width + 12; 
+    const wordHeight = fs + 6;
 
-    if (r >= 28) {
-      ctx.fillText(lbl, bx, by - fs * 0.5);
-      ctx.font = `${Math.max(8.5 * scale, fs - 2.5 * scale)}px sans-serif`;
-      ctx.fillStyle = isDark ? '#cbd5e1' : '#475569';
-      ctx.fillText(count + '회', bx, by + fs * 0.7);
-    } else {
-      ctx.fillText(lbl, bx, by);
+    let angle = Math.random() * Math.PI * 2;
+    let placed = false;
+    let tx = cx, ty = cy;
+    let spiralTurn = 0;
+
+    while (spiralTurn < 450 && !placed) {
+      angle += 0.12;
+      const dist = spiralTurn * 0.65;
+      tx = cx + Math.cos(angle) * dist;
+      ty = cy + Math.sin(angle) * dist;
+
+      const dFromCenter = Math.sqrt((tx - cx) ** 2 + (ty - cy) ** 2);
+      if (dFromCenter + Math.max(wordWidth, wordHeight)/2 > radius - 6) {
+        spiralTurn++;
+        continue;
+      }
+
+      const myBox = {
+        x1: tx - wordWidth/2,
+        y1: ty - wordHeight/2,
+        x2: tx + wordWidth/2,
+        y2: ty + wordHeight/2
+      };
+
+      const hasCollision = placedWords.some(p => {
+        return !(myBox.x2 < p.x1 || myBox.x1 > p.x2 || myBox.y2 < p.y1 || myBox.y1 > p.y2);
+      });
+
+      if (!hasCollision) {
+        placedWords.push(myBox);
+        placed = true;
+      }
+      spiralTurn++;
+    }
+
+    if (placed) {
+      ctx.beginPath();
+      ctx.fillStyle = idx === 0 
+        ? baseCol 
+        : cloudColors[idx % cloudColors.length];
+      
+      ctx.fillText(text, tx, ty);
+
+      if (fs >= sz * 0.045) {
+        ctx.font = `500 ${Math.max(10, fs * 0.35)}px sans-serif`;
+        ctx.fillStyle = isDark ? '#cbd5e1' : '#475569';
+        ctx.fillText(`${count}회`, tx, ty + fs * 0.65);
+      }
     }
   });
 }
@@ -1220,7 +1229,7 @@ function saveRecord(record) {
 }
 
 function clearAll() {
-  myConfirm("정말 전체 학생들의 필터버블 진단 데이터를 완전히 초기화하시겠습니까? (구글 시트 연동 중일 경우 구글 시트 내부 데이터는 직접 삭제해 주셔야 합니다.)").then(ok => {
+  myConfirm("정말 전체 학생들의 필터버블 진단 데이터를 완전히 초기화하시겠습니까?").then(ok => {
     if (ok) {
       localStorage.removeItem(STORAGE_KEY);
       cloudRecords = [];
@@ -1287,7 +1296,6 @@ function analyzeAndSave() {
       
       finishSaveFlow(name, currentRound, record);
       myAlert("구글 스프레드시트 클라우드와 로컬 저장소에 데이터가 정상 연동 보존되었습니다!", "🚀").then(() => {
-        // 모달을 닫은 뒤에도 포커스 스크롤 유실로 튀는 현상 방지
         const tabHeader = document.getElementById('studentTabHeader');
         if (tabHeader) tabHeader.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       });
@@ -1315,7 +1323,6 @@ function analyzeAndSave() {
   }
 }
 
-// 시청 기록 분석 완료 후 탭 전환 및 차트 생성 흐름
 function finishSaveFlow(name, round, record) {
   const allRecords = loadRecords();
   const otherRows = allRecords.filter(r => r.name !== name).flatMap(r => r.rows);
@@ -1402,7 +1409,9 @@ function renderCompareHTML(sc1, sc2, rows1, rows2, prefix) {
     </div>
     
     <div class="rs">
-      <div class="st">⚖️ 시각적 버블 체감도 변화 비교</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+        <div class="st" style="margin-bottom:0;">⚖️ 시각적 체감도 변화 비교</div>
+      </div>
       <div style="display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;">
         <button class="bubble-tab-btn active" onclick="switchCmpTab('major',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">대주제</button>
         <button class="bubble-tab-btn" onclick="switchCmpTab('sub',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">소주제</button>
@@ -1429,7 +1438,6 @@ function renderCompareHTML(sc1, sc2, rows1, rows2, prefix) {
 
 let cmpChartInsts = {};
 
-// 탭 대조 및 스냅 위치를 보정해주는 그래프 생성 로직
 function drawCompareCharts(sc1, sc2, rows1, rows2, prefix) {
   prefix = prefix || '';
   const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1470,6 +1478,7 @@ function drawCompareCharts(sc1, sc2, rows1, rows2, prefix) {
     kw: { r1: Object.entries(sc1f.kwCount).sort((a, b) => b[1] - a[1]), r2: Object.entries(sc2f.kwCount).sort((a, b) => b[1] - a[1]) },
     press: { r1: Object.entries(sc1f.pressCount).sort((a, b) => b[1] - a[1]), r2: Object.entries(sc2f.pressCount).sort((a, b) => b[1] - a[1]) },
   };
+  window[prefix + '_activeTab'] = 'major';
   drawCmpBubbles('major', prefix);
 }
 
@@ -1477,6 +1486,7 @@ function switchCmpTab(cat, btn, prefix) {
   prefix = prefix || '';
   btn.closest('.rs').querySelectorAll('.bubble-tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  window[prefix + '_activeTab'] = cat;
   drawCmpBubbles(cat, prefix);
 }
 
@@ -1485,63 +1495,17 @@ function drawCmpBubbles(cat, prefix) {
   const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
   const bd = window['cmp_bubbleData_' + prefix];
   if (!bd) return;
-  drawRoundPanel(prefix + 'cmpBub1', bd[cat].r1, '#4f46e5', isDark);
-  drawRoundPanel(prefix + 'cmpBub2', bd[cat].r2, '#1d9e75', isDark);
-}
 
-function drawRoundPanel(id, items, col, isDark) {
-  const cv = document.getElementById(id);
-  if (!cv) return;
-  const pw = cv.parentElement.clientWidth || 260, sz = pw * 2;
-  cv.width = sz; cv.height = sz;
-  const ctx = cv.getContext('2d');
-  ctx.clearRect(0, 0, sz, sz);
-  const cx = sz / 2, cy = sz / 2, radius = sz * 0.44;
+  const cv1 = document.getElementById(prefix + 'cmpBub1');
+  const cv2 = document.getElementById(prefix + 'cmpBub2');
+  if (!cv1 || !cv2) return;
 
-  ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.strokeStyle = col + (isDark ? '33' : '22'); ctx.lineWidth = 2; ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+  const pw = cv1.parentElement.clientWidth || 260, sz = pw * 2;
+  cv1.width = sz; cv1.height = sz;
+  cv2.width = sz; cv2.height = sz;
 
-  if (!items || !items.length) return;
-  const maxC = Math.max(...items.map(i => i[1]));
-  const minB = radius * 0.12, maxB = radius * 0.28, placed = [];
-
-  items.forEach((item, idx) => {
-    const [label, count] = item, r = minB + ((count / maxC) * (maxB - minB));
-    let bx, by, ok = false, tries = 0;
-    const base = (idx / items.length) * Math.PI * 2 - Math.PI / 2, step = (Math.PI * 2) / items.length;
-
-    while (tries < 200 && !ok) {
-      let angle, dist;
-      if (tries < 80) { angle = base + (Math.random() - 0.5) * step * 1.3; } else { angle = Math.random() * Math.PI * 2; }
-      dist = (r + 8) + Math.random() * (radius - r * 2 - 12);
-      bx = cx + Math.cos(angle) * dist; by = cy + Math.sin(angle) * dist;
-      if (Math.sqrt((bx - cx) ** 2 + (by - cy) ** 2) + r > radius + 2) { tries++; continue; }
-      if (!placed.some(p => { const dx = bx - p.x, dy = by - p.y; return Math.sqrt(dx * dx + dy * dy) < r + p.r + 8; })) ok = true;
-      tries++;
-    }
-
-    if (!ok) { bx = cx + Math.cos(base) * Math.min(r + 8 + idx * 4, radius - r - 6); by = cy + Math.sin(base) * Math.min(r + 8 + idx * 4, radius - r - 6); }
-    placed.push({ x: bx, y: by, r });
-
-    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2);
-    ctx.fillStyle = hexA(col, 0.75 * (isDark ? 0.8 : 1)); ctx.fill();
-
-    const fs = Math.max(9.5, Math.min(10.5, r * 0.35));
-    ctx.font = `bold ${fs}px sans-serif`;
-    ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    
-    const lbl = trimText(ctx, label, r * 1.55);
-
-    if (r >= 28) {
-      ctx.fillText(lbl, bx, by - fs * 0.5);
-      ctx.font = `${Math.max(8.5, fs - 2.5)}px sans-serif`;
-      ctx.fillStyle = isDark ? '#cbd5e1' : '#475569';
-      ctx.fillText(count + '회', bx, by + fs * 0.7);
-    } else {
-      ctx.fillText(lbl, bx, by);
-    }
-  });
+  drawWordCloudPanel(cv1, bd[cat].r1, '#4f46e5', isDark);
+  drawWordCloudPanel(cv2, bd[cat].r2, '#1d9e75', isDark);
 }
 
 function showTTab(i) {
@@ -1551,14 +1515,12 @@ function showTTab(i) {
     if (btn) btn.classList.toggle('active', j === i);
   });
   
-  // 교사 탭 전환 시에도 최상단 튕김 방지 및 앵커링 스무스 스크롤
   const tabHeader = document.getElementById('teacherTabHeader');
   if (tabHeader) {
     tabHeader.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
 
-// 구글 스프레드시트에서 학급 전체 데이터 가져오기
 function syncFromGoogleSheet() {
   const gasUrl = getGasUrl();
   if (!gasUrl) return Promise.resolve(false);
@@ -1594,7 +1556,6 @@ function loadTeacher() {
   }
 }
 
-// 교사 페이지 화면 렌더링 세부 함수
 function renderTeacherContent() {
   const records = loadRecords();
   const emptyMsg = `<div class="card"><div class="empty-msg">아직 제출된 학생 데이터가 없습니다.<br>스프레드시트가 비어있거나, 학생 모드에서 자가 진단을 먼저 저장해 주세요.</div></div>`;
