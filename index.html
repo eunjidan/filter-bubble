@@ -506,7 +506,7 @@
     <p class="subtitle">내가 시청한 뉴스 알고리즘의 편향 정도와 에코챔버 현상을 자가 진단해보세요</p>
   </header>
 
-  <!-- 구글 Apps Script 연동 데이터 설정 박스 (숨김 처리됨. 다시 보이고 싶다면 style의 "display: none;"을 제거하세요) -->
+  <!-- 구글 Apps Script 연동 데이터 설정 박스 -->
   <div class="api-config-box">
     <div style="font-weight: 700; margin-bottom: 6px; color: var(--primary);">📊 구글 스프레드시트 연동 설정</div>
     <div style="font-size:11px; color:var(--text2); margin-bottom: 10px; line-height:1.4;">
@@ -526,7 +526,7 @@
 
   <!-- 학생 페이지 -->
   <div id="studentPage" class="page visible">
-    <div class="tab-row">
+    <div class="tab-row" id="studentTabHeader">
       <button class="tab-btn active" id="sTab0" onclick="showSTab(0)">✏️ 데이터 입력</button>
       <button class="tab-btn" id="sTab1" onclick="showSTab(1)">1차 분석 결과</button>
       <button class="tab-btn" id="sTab2" onclick="showSTab(2)">2차 분석 결과</button>
@@ -652,7 +652,7 @@
         <button class="btn-danger" onclick="clearAll()">🗑 전체 데이터 리셋</button>
       </div>
     </div>
-    <div class="tab-row">
+    <div class="tab-row" id="teacherTabHeader">
       <button class="tab-btn active" id="tTab0" onclick="showTTab(0)">👥 학급 1차 종합 결과</button>
       <button class="tab-btn" id="tTab1" onclick="showTTab(1)">👥 학급 2차 종합 결과</button>
       <button class="tab-btn" id="tTab2" onclick="showTTab(2)">📊 전·후 통계 비교 대조</button>
@@ -666,10 +666,9 @@
 <script>
 // ==========================================
 // 💡 교사 배포용 기본 Apps Script 웹 앱 URL 입력 영역
-// 배포하기 전에 아래 따옴표 안에 Apps Script의 배포 URL을 하드코딩해두면
-// 사용자가 매번 번거롭게 붙여넣지 않아도 자동 적용됩니다!
+// 제공해주신 최신 Google Apps Script Web App URL이 성공적으로 반영되었습니다!
 // ==========================================
-const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbyqCpzvDGnwOtKyQgVW8RkuCvNBw2G6F6fUJqmozcGXCBb8dOJfRFW0MqjcNXZn0HJn/exec"; 
+const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbx8oFL3GqxRT2XRc2PyiqmKhWv6tOIJyb95y5oS7N09ZJloOr_K0mjC07C-tP-pz20QUA/exec"; 
 
 const TREE = {
   '정치': ['청와대', '국회/정당', '북한', '행정', '국방/외교', '정치일반'],
@@ -846,7 +845,6 @@ function setMode(m) {
 
 let currentRound = 1;
 
-// 라운드 가이드 변경
 function selectRound(r) {
   currentRound = r;
   document.getElementById('roundBtn1').style.cssText = `flex:1; padding:11px; font-size:13px; font-weight:600; border-radius:var(--radius); border-style:solid; cursor:pointer; background:${r === 1 ? 'rgba(79, 70, 229, 0.08)' : 'var(--bg)'}; color:${r === 1 ? 'var(--primary)' : 'var(--text2)'}; border-color:${r === 1 ? 'var(--primary)' : 'var(--border2)'};`;
@@ -854,6 +852,7 @@ function selectRound(r) {
   document.getElementById('roundHint').textContent = r === 1 ? '평소 알고리즘 그대로 편향을 진단할 경우 1차를 선택하세요.' : '구독 취소 또는 검색 교란 운동을 마친 최근의 상태를 측정하려면 2차를 선택하세요.';
 }
 
+// 탭 전환 시 화면이 최상단으로 강제로 튀어 올라가는 현상 수정
 function showSTab(i) {
   ['sInput', 'sResult1', 'sResult2', 'sCompare'].forEach((id, idx) => {
     const el = document.getElementById(id);
@@ -862,6 +861,14 @@ function showSTab(i) {
   for (let t = 0; t < 4; t++) {
     const btn = document.getElementById('sTab' + t);
     if (btn) btn.classList.toggle('active', t === i);
+  }
+  
+  // 데이터 입력 탭이 아닐 경우(결과물 페이지일 때), 최상단 윈도우 스크롤을 막고 분석 결과 탭 헤더로 뷰를 매끄럽게 가져옵니다.
+  if (i > 0) {
+    const tabHeader = document.getElementById('studentTabHeader');
+    if (tabHeader) {
+      tabHeader.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }
 }
 
@@ -1096,13 +1103,13 @@ function drawSideBySide(prefix, data, isDark) {
   if (teacherMode || !hasOther) {
     const sz = pw * 2;
     cvMine.width = sz; cvMine.height = sz; 
-    drawPanel(cvMine, data.mine, '#4f46e5', mineSet, false, isDark, 1.6);
+    drawPanel(cvMine, data.mine, '#4f46e5', mineSet, false, isDark, 1.4); 
   } else {
     const sz = pw * 2;
     cvMine.width = sz; cvMine.height = sz;
     if (cvClass) { cvClass.width = sz; cvClass.height = sz; }
-    drawPanel(cvMine, data.mine, '#4f46e5', mineSet, false, isDark, 1.6);
-    if (cvClass) drawPanel(cvClass, data.cls, '#64748b', mineSet, true, isDark, 1.6);
+    drawPanel(cvMine, data.mine, '#4f46e5', mineSet, false, isDark, 1.4);
+    if (cvClass) drawPanel(cvClass, data.cls, '#64748b', mineSet, true, isDark, 1.4);
   }
 }
 
@@ -1163,15 +1170,16 @@ function placePanelBubbles(ctx, items, cx, cy, radius, baseCol, mineSet, markOve
       ctx.strokeStyle = MINE_COL; ctx.lineWidth = Math.max(2, r * 0.08); ctx.stroke();
     }
 
-    const fs = Math.max(11, Math.min(16 * scale, r * 0.4)) * scale;
+    const fs = Math.max(9.5, Math.min(13.5 * scale, r * 0.33)) * scale;
     ctx.font = `bold ${fs}px sans-serif`;
     ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const lbl = trimText(ctx, label, r * 1.75);
+    
+    const lbl = trimText(ctx, label, r * 1.55);
 
-    if (r >= 26) {
+    if (r >= 28) {
       ctx.fillText(lbl, bx, by - fs * 0.5);
-      ctx.font = `${Math.max(10 * scale, fs - 2 * scale)}px sans-serif`;
+      ctx.font = `${Math.max(8.5 * scale, fs - 2.5 * scale)}px sans-serif`;
       ctx.fillStyle = isDark ? '#cbd5e1' : '#475569';
       ctx.fillText(count + '회', bx, by + fs * 0.7);
     } else {
@@ -1278,7 +1286,11 @@ function analyzeAndSave() {
       saveBtn.innerHTML = originText;
       
       finishSaveFlow(name, currentRound, record);
-      myAlert("구글 스프레드시트 클라우드와 로컬 저장소에 데이터가 정상 연동 보존되었습니다!", "🚀");
+      myAlert("구글 스프레드시트 클라우드와 로컬 저장소에 데이터가 정상 연동 보존되었습니다!", "🚀").then(() => {
+        // 모달을 닫은 뒤에도 포커스 스크롤 유실로 튀는 현상 방지
+        const tabHeader = document.getElementById('studentTabHeader');
+        if (tabHeader) tabHeader.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
     })
     .catch(err => {
       saveBtn.disabled = false;
@@ -1286,14 +1298,20 @@ function analyzeAndSave() {
       console.error(err);
       
       finishSaveFlow(name, currentRound, record);
-      myAlert("구글 시트 연송 전송에 실패했습니다. 입력 양식과 Apps Script URL을 다시 한번 확인해 주세요. (로컬 브라우저에는 임시 저장되었습니다.)", "⚠️");
+      myAlert("구글 시트 연송 전송에 실패했습니다. 입력 양식과 Apps Script URL을 다시 한번 확인해 주세요. (로컬 브라우저에는 임시 저장되었습니다.)", "⚠️").then(() => {
+        const tabHeader = document.getElementById('studentTabHeader');
+        if (tabHeader) tabHeader.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
     });
   } else {
     saveBtn.disabled = false;
     saveBtn.innerHTML = originText;
     
     finishSaveFlow(name, currentRound, record);
-    myAlert("분석이 완료되었습니다! (구글 시트 URL이 설정되지 않아 로컬 브라우저에 단독 기록되었습니다.)", "💾");
+    myAlert("분석이 완료되었습니다! (구글 시트 URL이 설정되지 않아 로컬 브라우저에 단독 기록되었습니다.)", "💾").then(() => {
+      const tabHeader = document.getElementById('studentTabHeader');
+      if (tabHeader) tabHeader.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
   }
 }
 
@@ -1411,6 +1429,7 @@ function renderCompareHTML(sc1, sc2, rows1, rows2, prefix) {
 
 let cmpChartInsts = {};
 
+// 탭 대조 및 스냅 위치를 보정해주는 그래프 생성 로직
 function drawCompareCharts(sc1, sc2, rows1, rows2, prefix) {
   prefix = prefix || '';
   const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1507,15 +1526,16 @@ function drawRoundPanel(id, items, col, isDark) {
     ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2);
     ctx.fillStyle = hexA(col, 0.75 * (isDark ? 0.8 : 1)); ctx.fill();
 
-    const fs = Math.max(11, Math.min(16, r * 0.4));
+    const fs = Math.max(9.5, Math.min(10.5, r * 0.35));
     ctx.font = `bold ${fs}px sans-serif`;
     ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const lbl = trimText(ctx, label, r * 1.7);
+    
+    const lbl = trimText(ctx, label, r * 1.55);
 
-    if (r >= 26) {
+    if (r >= 28) {
       ctx.fillText(lbl, bx, by - fs * 0.5);
-      ctx.font = `${Math.max(10, fs - 2)}px sans-serif`;
+      ctx.font = `${Math.max(8.5, fs - 2.5)}px sans-serif`;
       ctx.fillStyle = isDark ? '#cbd5e1' : '#475569';
       ctx.fillText(count + '회', bx, by + fs * 0.7);
     } else {
@@ -1530,6 +1550,12 @@ function showTTab(i) {
     const btn = document.getElementById('tTab' + j);
     if (btn) btn.classList.toggle('active', j === i);
   });
+  
+  // 교사 탭 전환 시에도 최상단 튕김 방지 및 앵커링 스무스 스크롤
+  const tabHeader = document.getElementById('teacherTabHeader');
+  if (tabHeader) {
+    tabHeader.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
 // 구글 스프레드시트에서 학급 전체 데이터 가져오기
@@ -1547,7 +1573,7 @@ function syncFromGoogleSheet() {
       return false;
     })
     .catch(err => {
-      console.error("구글 시트 동기화 에러: ", err);
+      console.warn("구글 시트 동기화 에러: ", err);
       return false;
     });
 }
