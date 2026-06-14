@@ -602,8 +602,8 @@
         </div>
         <div class="video-row" style="margin-bottom:8px;">
           <span class="col-header">언론사 채널명</span>
-          <span class="col-header">대카테고리</span>
-          <span class="col-header">세부 카테고리</span>
+          <span class="col-header">대주제</span>
+          <span class="col-header">소주제</span>
           <span class="col-header">핵심 키워드 (선택)</span>
           <span></span>
         </div>
@@ -612,7 +612,7 @@
       </div>
 
       <div class="hint-box" style="margin-bottom:20px;">
-        <strong>📋 세부 카테고리 분류 참고 가이드</strong><br>
+        <strong>📋 소주제 분류 참고 가이드</strong><br>
         <span style="color:#534AB7; font-weight:700;">정치</span> 청와대·국회/정당·북한·행정·국방/외교·정치일반 <br>
         <span style="color:#1D9E75; font-weight:700;">경제</span> 금융·증권·산업/재계·중기/벤처·부동산·글로벌·경제일반<br>
         <span style="color:#D85A30; font-weight:700;">사회</span> 사건사고·교육·노동·언론·환경·인권/복지·식품/의료·사회일반<br>
@@ -846,6 +846,7 @@ function setMode(m) {
 
 let currentRound = 1;
 
+// 라운드 가이드 변경
 function selectRound(r) {
   currentRound = r;
   document.getElementById('roundBtn1').style.cssText = `flex:1; padding:11px; font-size:13px; font-weight:600; border-radius:var(--radius); border-style:solid; cursor:pointer; background:${r === 1 ? 'rgba(79, 70, 229, 0.08)' : 'var(--bg)'}; color:${r === 1 ? 'var(--primary)' : 'var(--text2)'}; border-color:${r === 1 ? 'var(--primary)' : 'var(--border2)'};`;
@@ -1010,8 +1011,8 @@ function renderResultHTML(sc, rows, prefix, otherSc, teacherMode) {
       </div>
     </div>
     <div style="display:grid; grid-template-columns:repeat(${cols}, 1fr); gap:10px; margin-bottom:16px;">
-      <div class="metric-card"><div class="metric-label">대장르 편향</div><div class="metric-val" style="color:${barCol(sc.iMaj)}">${sc.iMaj}</div></div>
-      <div class="metric-card"><div class="metric-label">소장르 편향</div><div class="metric-val" style="color:${barCol(sc.iSub)}">${sc.iSub}</div></div>
+      <div class="metric-card"><div class="metric-label">대주제 편향</div><div class="metric-val" style="color:${barCol(sc.iMaj)}">${sc.iMaj}</div></div>
+      <div class="metric-card"><div class="metric-label">소주제 편향</div><div class="metric-val" style="color:${barCol(sc.iSub)}">${sc.iSub}</div></div>
       ${hasKw ? `<div class="metric-card"><div class="metric-label">단어 편향</div><div class="metric-val" style="color:${barCol(sc.iKw)}">${sc.iKw}</div></div>` : ''}
       ${hasPress ? `<div class="metric-card"><div class="metric-label">미디어 편향</div><div class="metric-val" style="color:${barCol(sc.iPrs)}">${sc.iPrs}</div></div>` : ''}
     </div>
@@ -1019,8 +1020,8 @@ function renderResultHTML(sc, rows, prefix, otherSc, teacherMode) {
     <div class="rs">
       <div class="st">📊 버블 편향 분포 시각화</div>
       <div style="display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap;">
-        <button class="bubble-tab-btn active" onclick="switchBubbleTab('${prefix}','major',this); return false;" style="font-size:11px; padding:6px 12px;">대카테고리</button>
-        <button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','sub',this); return false;" style="font-size:11px; padding:6px 12px;">세부카테고리</button>
+        <button class="bubble-tab-btn active" onclick="switchBubbleTab('${prefix}','major',this); return false;" style="font-size:11px; padding:6px 12px;">대주제</button>
+        <button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','sub',this); return false;" style="font-size:11px; padding:6px 12px;">소주제</button>
         ${hasKw ? `<button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','kw',this); return false;" style="font-size:11px; padding:6px 12px;">주요 키워드</button>` : ''}
         ${hasPress ? `<button class="bubble-tab-btn" onclick="switchBubbleTab('${prefix}','press',this); return false;" style="font-size:11px; padding:6px 12px;">언론 채널사</button>` : ''}
       </div>
@@ -1093,7 +1094,6 @@ function drawSideBySide(prefix, data, isDark) {
   const hasOther = !!cvClass;
 
   if (teacherMode || !hasOther) {
-    // 내부 해상도를 1:1 정사각형으로 동일하게 할당하여 찌그러짐 현상을 완벽히 배제
     const sz = pw * 2;
     cvMine.width = sz; cvMine.height = sz; 
     drawPanel(cvMine, data.mine, '#4f46e5', mineSet, false, isDark, 1.6);
@@ -1198,7 +1198,6 @@ function loadLocalRecords() {
 }
 
 function loadRecords() {
-  // 구글 클라우드에서 가져온 기록이 존재하면 병합하여 반환, 그렇지 않으면 로컬 데이터를 반환
   if (cloudRecords && cloudRecords.length > 0) {
     return cloudRecords;
   }
@@ -1215,24 +1214,19 @@ function saveRecord(record) {
 function clearAll() {
   myConfirm("정말 전체 학생들의 필터버블 진단 데이터를 완전히 초기화하시겠습니까? (구글 시트 연동 중일 경우 구글 시트 내부 데이터는 직접 삭제해 주셔야 합니다.)").then(ok => {
     if (ok) {
-      // 1. 로컬스토리지 청소
       localStorage.removeItem(STORAGE_KEY);
       cloudRecords = [];
       
-      // 2. 학생 이름 및 입력 리스트 메모리 리셋
       const studentNameInput = document.getElementById('studentName');
       if (studentNameInput) studentNameInput.value = '';
       
-      // 3. 입력용 뼈대 행 비우고 기본 빈 칸 4개로 초기 세팅
       rows = [];
       for (let i = 0; i < 4; i++) addRow();
       
-      // 4. 결과 출력 컨텐츠 리필터링 및 가리기
       document.getElementById('sResult1Content').innerHTML = `<div class="card"><div class="empty-msg">아직 1차 분석 데이터가 존재하지 않습니다.</div></div>`;
       document.getElementById('sResult2Content').innerHTML = `<div class="card"><div class="empty-msg">아직 2차 분석 데이터가 등록되지 않았습니다.</div></div>`;
       document.getElementById('sCompareContent').innerHTML = `<div class="card"><div class="empty-msg">데이터를 저장하면 비교 분석이 진행됩니다.</div></div>`;
       
-      // 5. 교사 탭 동기화 트리거
       loadTeacher();
       
       myAlert("로컬 브라우저에 누적되었던 모든 분석 이력과 대시보드가 초기화되었습니다.", "✨");
@@ -1267,15 +1261,13 @@ function analyzeAndSave() {
     scores: { iMaj: sc.iMaj, iSub: sc.iSub, iKw: sc.iKw, iPrs: sc.iPrs, iTotal: sc.iTotal }
   };
 
-  // 1. 로컬 백업 저장 실행
   saveRecord(record);
 
-  // 2. 구글 스프레드시트 연동이 지정되어 있는 경우 외부 전송 시도
   const gasUrl = getGasUrl();
   if (gasUrl) {
     fetch(gasUrl, {
       method: "POST",
-      mode: "no-cors", // 브라우저 CORS 차단 정책 우회용 no-cors 옵션 탑재
+      mode: "no-cors", 
       headers: {
         "Content-Type": "application/json"
       },
@@ -1285,7 +1277,6 @@ function analyzeAndSave() {
       saveBtn.disabled = false;
       saveBtn.innerHTML = originText;
       
-      // 구글 시트 전송 완료 후 UI 표시 업데이트 실행
       finishSaveFlow(name, currentRound, record);
       myAlert("구글 스프레드시트 클라우드와 로컬 저장소에 데이터가 정상 연동 보존되었습니다!", "🚀");
     })
@@ -1294,7 +1285,6 @@ function analyzeAndSave() {
       saveBtn.innerHTML = originText;
       console.error(err);
       
-      // 실패하더라도 로컬 모드로 일단 전주기 완료 흐름 유지
       finishSaveFlow(name, currentRound, record);
       myAlert("구글 시트 연송 전송에 실패했습니다. 입력 양식과 Apps Script URL을 다시 한번 확인해 주세요. (로컬 브라우저에는 임시 저장되었습니다.)", "⚠️");
     });
@@ -1302,7 +1292,6 @@ function analyzeAndSave() {
     saveBtn.disabled = false;
     saveBtn.innerHTML = originText;
     
-    // 오프라인/로컬 단독 모드 완료
     finishSaveFlow(name, currentRound, record);
     myAlert("분석이 완료되었습니다! (구글 시트 URL이 설정되지 않아 로컬 브라우저에 단독 기록되었습니다.)", "💾");
   }
@@ -1385,8 +1374,8 @@ function renderCompareHTML(sc1, sc2, rows1, rows2, prefix) {
     <div style="font-size:14px; font-weight:700; margin-bottom:14px;">📈 필터버블 위험 지수 종합 변동 추이 (1차 → 2차)</div>
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:10px; margin-bottom:20px;">
       ${scoreCell('종합 수치', sc1.iTotal, sc2.iTotal)}
-      ${scoreCell('대장르 편향', sc1.iMaj, sc2.iMaj)}
-      ${scoreCell('소장르 편향', sc1.iSub, sc2.iSub)}
+      ${scoreCell('대주제 편향', sc1.iMaj, sc2.iMaj)}
+      ${scoreCell('소주제 편향', sc1.iSub, sc2.iSub)}
       ${hasKw ? scoreCell('키워드 편향', sc1.iKw, sc2.iKw) : ''}
       ${hasPress ? scoreCell('채널 편향', sc1.iPrs, sc2.iPrs) : ''}
     </div>
@@ -1397,8 +1386,8 @@ function renderCompareHTML(sc1, sc2, rows1, rows2, prefix) {
     <div class="rs">
       <div class="st">⚖️ 시각적 버블 체감도 변화 비교</div>
       <div style="display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;">
-        <button class="bubble-tab-btn active" onclick="switchCmpTab('major',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">대카테고리</button>
-        <button class="bubble-tab-btn" onclick="switchCmpTab('sub',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">세부카테고리</button>
+        <button class="bubble-tab-btn active" onclick="switchCmpTab('major',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">대주제</button>
+        <button class="bubble-tab-btn" onclick="switchCmpTab('sub',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">소주제</button>
         ${hasKw ? `<button class="bubble-tab-btn" onclick="switchCmpTab('kw',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">키워드</button>` : ''}
         ${hasPress ? `<button class="bubble-tab-btn" onclick="switchCmpTab('press',this,'${prefix}'); return false;" style="font-size:11px; padding:6px 12px;">채널사</button>` : ''}
       </div>
@@ -1435,7 +1424,7 @@ function drawCompareCharts(sc1, sc2, rows1, rows2, prefix) {
     cmpChartInsts[prefix] = new Chart(cc, {
       type: 'bar',
       data: {
-        labels: ['종합', '대장르', '소장르', '키워드', '언론사'],
+        labels: ['종합', '대주제', '소주제', '키워드', '언론사'],
         datasets: [
           { label: '1차 상태', data: [sc1.iTotal, sc1.iMaj, sc1.iSub, sc1.iKw ?? 0, sc1.iPrs ?? 0], backgroundColor: '#4f46e5', borderRadius: 4 },
           { label: '2차 상태', data: [sc2.iTotal, sc2.iMaj, sc2.iSub, sc2.iKw ?? 0, sc2.iPrs ?? 0], backgroundColor: '#1d9e75', borderRadius: 4 }
@@ -1568,7 +1557,6 @@ function loadTeacher() {
   
   const gasUrl = getGasUrl();
   if (gasUrl) {
-    // 1. 구글 스프레드시트 연동 중이면 동기화 요청 실행 후 렌더링
     syncFromGoogleSheet().then(success => {
       renderTeacherContent();
       if (!success) {
@@ -1576,7 +1564,6 @@ function loadTeacher() {
       }
     });
   } else {
-    // 2. 단독 모드일 땐 기존 로컬 데이터 기반 렌더링
     renderTeacherContent();
   }
 }
@@ -1612,8 +1599,8 @@ function renderTeacherContent() {
         </div>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
           <span class="badge" style="background:${barCol(sc.iTotal)}22; color:${barCol(sc.iTotal)};">종합 ${sc.iTotal}</span>
-          <span class="badge" style="background:${barCol(sc.iMaj)}22; color:${barCol(sc.iMaj)};">대장르 ${sc.iMaj}</span>
-          <span class="badge" style="background:${barCol(sc.iSub)}22; color:${barCol(sc.iSub)};">세부 ${sc.iSub}</span>
+          <span class="badge" style="background:${barCol(sc.iMaj)}22; color:${barCol(sc.iMaj)};">대주제 ${sc.iMaj}</span>
+          <span class="badge" style="background:${barCol(sc.iSub)}22; color:${barCol(sc.iSub)};">소주제 ${sc.iSub}</span>
           ${sc.iPrs !== null ? `<span class="badge" style="background:${barCol(sc.iPrs)}22; color:${barCol(sc.iPrs)};">언론사 ${sc.iPrs}</span>` : ''}
         </div>
       </div>`;
