@@ -550,15 +550,15 @@
         <div class="sample-grid-3" style="margin-bottom: 18px;">
           <div class="sample-btn" onclick="injectSample('echo-chamber')">
             <strong>🔴 정치 에코챔버형</strong>
-            <span style="font-size:10px; color:var(--text3); margin-top:2px;">정치 평론에 치우친 고위험 시청</span>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">정치 평론에 치우친 고위험 시청 (10개 비디오)</span>
           </div>
           <div class="sample-btn" onclick="injectSample('entertainment')">
             <strong>🎬 대중문화·엔터형</strong>
-            <span style="font-size:10px; color:var(--text3); margin-top:2px;">연예 및 미디어 뉴스 과다 시청</span>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">연예 및 미디어 뉴스 과다 시청 (10개 비디오)</span>
           </div>
           <div class="sample-btn" onclick="injectSample('it-dopamine')">
             <strong>🔵 IT/과학 치우침형</strong>
-            <span style="font-size:10px; color:var(--text3); margin-top:2px;">IT 신기술 및 정보만 연속 탐닉</span>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">IT 신기술 및 정보만 연속 탐닉 (10개 비디오)</span>
           </div>
         </div>
 
@@ -569,15 +569,15 @@
         <div class="sample-grid-3">
           <div class="sample-btn" onclick="injectSample('diversified-escape')">
             <strong>🟡 알고리즘 다변화 극복형</strong>
-            <span style="font-size:10px; color:var(--text3); margin-top:2px;">기존 정치 위주에서 IT, 대중문화 융합 시청</span>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">기존 정치 위주에서 다양한 주제로 탈출 (10개 비디오)</span>
           </div>
           <div class="sample-btn" onclick="injectSample('public-docu')">
             <strong>🟣 공영·시사교양 정화형</strong>
-            <span style="font-size:10px; color:var(--text3); margin-top:2px;">공영 뉴스 보도와 다큐 위주 고품격 세팅</span>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">공영 뉴스 보도와 다큐 위주 고품격 세팅 (10개 비디오)</span>
           </div>
           <div class="sample-btn" onclick="injectSample('balanced')">
             <strong>🟢 다중 균형 시청형</strong>
-            <span style="font-size:10px; color:var(--text3); margin-top:2px;">정치/경제/사회/문화 고른 분산 분배</span>
+            <span style="font-size:10px; color:var(--text3); margin-top:2px;">정치/경제/사회/문화 고른 분산 분배 (10개 비디오)</span>
           </div>
         </div>
       </div>
@@ -668,7 +668,7 @@
 // 💡 교사 배포용 기본 Apps Script 웹 앱 URL 입력 영역
 // 제공해주신 최신 Google Apps Script Web App URL이 성공적으로 반영되었습니다!
 // ==========================================
-const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbx8oFL3GqxRT2XRc2PyiqmKhWv6tOIJyb95y5oS7N09ZJloOr_K0mjC07C-tP-pz20QUA/exec"; 
+const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbyGghN9V9PCYAo9-PPnMl-kv6Whx1D-41I8C2vUecA-mkhqTJe81b3tQDXKTa-jt8e6UQ/exec"; 
 
 const TREE = {
   '정치': ['청와대', '국회/정당', '북한', '행정', '국방/외교', '정치일반'],
@@ -872,61 +872,98 @@ function injectSample(type) {
   document.getElementById('studentName').value = '';
 
   if (type === 'echo-chamber') {
+    // 1차 정치 에코챔버형 (10개 고위험 편향 세트)
     sampleData = [
       { ch: '가로세로연구소', major: '정치', sub: '국회/정당', kw: '선거, 정당, 국회, 청문회, 의혹' },
       { ch: '김어준의 겸손은힘들다 뉴스공장', major: '정치', sub: '국회/정당', kw: '선거, 탄핵, 대표, 여론조사, 검찰' },
       { ch: '신의한수', major: '정치', sub: '정치일반', kw: '폭로, 정당, 수사, 비리, 단독' },
       { ch: 'KBS 뉴스', major: '정치', sub: '국방/외교', kw: '외교, 순방, 미국, 동맹, 안보' },
-      { ch: '새날', major: '정치', sub: '정치일반', kw: '탄핵, 수사, 국조, 이재명, 정당' }
+      { ch: '새날', major: '정치', sub: '정치일반', kw: '탄핵, 수사, 국조, 이재명, 정당' },
+      { ch: '펜앤드마이크', major: '정치', sub: '정치일반', kw: '선거, 정당, 특검, 청문회, 논란' },
+      { ch: '스픽스', major: '정치', sub: '국회/정당', kw: '정당, 탄핵, 대표, 의원, 대선' },
+      { ch: '진성호방송', major: '정치', sub: '정치일반', kw: '단독, 폭로, 특혜, 정당, 탄핵' },
+      { ch: '민중의소리', major: '정치', sub: '행정', kw: '국회, 행정, 탄핵, 선거, 대표' },
+      { ch: '송영길TV', major: '정치', sub: '국회/정당', kw: '검찰, 수사, 특검, 대표, 선거' }
     ];
     selectRound(1);
   } else if (type === 'entertainment') {
+    // 1차 대중문화·엔터형 (10개 편향 세트)
     sampleData = [
       { ch: '넷플릭스 코리아', major: '엔터테인먼트', sub: '영화', kw: '영화, 시리즈, 개봉작, 감독, 명작' },
       { ch: '디즈니 플러스', major: '엔터테인먼트', sub: '드라마', kw: '정주행, 예고편, 독점, 스트리밍, 명대사' },
       { ch: '디스패치 Star', major: '엔터테인먼트', sub: '연예소식', kw: '열애설, 촬영장, 비하인드, 열애, 복귀' },
       { ch: 'Mnet K-POP', major: '엔터테인먼트', sub: '음악', kw: '뮤직비디오, 아이돌, 직캠, 무대, 음원' },
-      { ch: '영화 분석관', major: '엔터테인먼트', sub: '영화', kw: '결말해석, 영화추천, 스포일러, 리뷰, 해석' }
+      { ch: '영화 분석관', major: '엔터테인먼트', sub: '영화', kw: '결말해석, 영화추천, 스포일러, 리뷰, 해석' },
+      { ch: '스브스 예능', major: '엔터테인먼트', sub: '연예소식', kw: '예능, 레전드, 웃음, 하이라이트, 연예' },
+      { ch: '딩고 뮤직', major: '엔터테인먼트', sub: '음악', kw: '라이브, 세로라이브, 명곡, 보컬, 듀엣' },
+      { ch: 'KBS Kpop', major: '엔터테인먼트', sub: '음악', kw: '음악방송, 아이돌, 직캠, 컴백, 무대' },
+      { ch: '영화리뷰 찰리', major: '엔터테인먼트', sub: '영화', kw: '영화리뷰, 소개, 스포일러, 줄거리, 추천' },
+      { ch: '티빙 오리지널', major: '엔터테인먼트', sub: '드라마', kw: '오리지널, 예능, 드라마, 명장면, 정주행' }
     ];
     selectRound(1);
   } else if (type === 'it-dopamine') {
+    // 1차 IT/과학형 (10개 편향 세트)
     sampleData = [
       { ch: '3프로TV', major: '경제', sub: '산업/재계', kw: '엔비디아, 반도체, 테크, 나스닥, AI' },
       { ch: '테크튜브', major: 'IT/과학', sub: '모바일', kw: '스마트폰, 갤럭시, 애플, 사전예약, 리뷰' },
       { ch: 'itSub잇섭', major: 'IT/과학', sub: '인터넷/SNS', kw: '인공지능, ChatGPT, AI, 언박싱, 신기술' },
       { ch: '사피엔스 스튜디오', major: 'IT/과학', sub: '과학일반', kw: '양자역학, 물리, 과학, 실험, 아인슈타인' },
-      { ch: '디에디트 THE EDIT', major: 'IT/과학', sub: '컴퓨터', kw: '노트북, 맥북, 가젯, 리뷰, 디자인' }
+      { ch: '디에디트 THE EDIT', major: 'IT/과학', sub: '컴퓨터', kw: '노트북, 맥북, 가젯, 리뷰, 디자인' },
+      { ch: '안될과학 Unstable', major: 'IT/과학', sub: '과학일반', kw: '과학, 초전도체, 우주, 블랙홀, 양자' },
+      { ch: '테크몽 Techmong', major: 'IT/과학', sub: '모바일', kw: '태블릿, 꿀팁, 갤럭시, 아이패드, 활용법' },
+      { ch: '씨넷 코리아', major: 'IT/과학', sub: '컴퓨터', kw: '컴퓨터, 하드웨어, 그래픽카드, 조립, 벤치마크' },
+      { ch: 'IT동아', major: 'IT/과학', sub: '통신/뉴미디어', kw: '망사용료, 주파수, 5G, 기지국, 통신사' },
+      { ch: '조코딩 JoCoding', major: 'IT/과학', sub: '인터넷/SNS', kw: '코딩, 프로그래밍, 개발자, AI툴, 파이썬' }
     ];
     selectRound(1);
   } else if (type === 'diversified-escape') {
+    // 2차 알고리즘 다변화 극복형 (10개 균형 극복 세트)
     sampleData = [
       { ch: '김어준의 겸손은힘들다 뉴스공장', major: '정치', sub: '국회/정당', kw: '선거, 탄핵, 뉴스' },
       { ch: 'itSub잇섭', major: 'IT/과학', sub: '인터넷/SNS', kw: '인공지능, AI, 스마트기기, 얼리어답터' },
       { ch: '넷플릭스 코리아', major: '엔터테인먼트', sub: '영화', kw: '정주행, 영화추천, 시나리오' },
       { ch: 'SBS 뉴스', major: '사회', sub: '환경', kw: '기후위기, 탄소배출, 북극곰' },
-      { ch: '슈카월드', major: '생활/문화', sub: '생활문화일반', kw: '트렌드, 문화현상, 고령화' }
+      { ch: '슈카월드', major: '생활/문화', sub: '생활문화일반', kw: '트렌드, 문화현상, 고령화' },
+      { ch: 'EBS 다큐', major: '사회', sub: '교육', kw: '다큐, 인문학, 교육, 역사' },
+      { ch: '3프로TV', major: '경제', sub: '금융', kw: '금리, 주식, 연준, 글로벌' },
+      { ch: 'YTN 스타', major: '엔터테인먼트', sub: '연예소식', kw: '콘서트, 컴백, 소속사, 열애설' },
+      { ch: '지식해적단', major: '세계', sub: '국제일반', kw: '역사, 세계사, 영토' },
+      { ch: 'YTN 사이언스', major: 'IT/과학', sub: '과학일반', kw: '우주 탐사, 로봇, 신기술' }
     ];
     selectRound(2);
   } else if (type === 'public-docu') {
+    // 2차 공영/시사교양 정화형 (10개 세트)
     sampleData = [
       { ch: 'KBS 뉴스', major: '정치', sub: '행정', kw: '정부, 뉴스, 정책, 브리핑' },
       { ch: 'EBS 다큐', major: '사회', sub: '교육', kw: '다큐멘터리, 교육, 역사, 인문학, 심리' },
       { ch: 'YTN', major: '사회', sub: '언론', kw: '뉴스, 보도, 속보, 사회' },
       { ch: '사피엔스 스튜디오', major: 'IT/과학', sub: '과학일반', kw: '인문학, 물리, 우주, 과학, 천체' },
-      { ch: '국립중앙박물관', major: '생활/문화', sub: '생활문화일반', kw: '역사, 전시, 문화재, 고궁, 예술' }
+      { ch: '국립중앙박물관', major: '생활/문화', sub: '생활문화일반', kw: '역사, 전시, 문화재, 고궁, 예술' },
+      { ch: 'MBC 다큐하우스', major: '사회', sub: '환경', kw: '기후변화, 다큐, 인권, 환경오염, 노동' },
+      { ch: 'EBS 역사채널e', major: '생활/문화', sub: '생활문화일반', kw: '역사, 전통, 기록, 국사, 교양' },
+      { ch: 'KBS 역사저널 그날', major: '생활/문화', sub: '생활문화일반', kw: '조선왕조, 역사, 토론, 고대사, 전쟁사' },
+      { ch: 'SBS 그것이 알고싶다', major: '사회', sub: '사건사고', kw: '그알, 미제사건, 프로파일링, 범죄예방' },
+      { ch: 'JTBC 시사', major: '사회', sub: '노동', kw: '현장보도, 노동자, 민생, 토론, 기획취재' }
     ];
     selectRound(2);
   } else if (type === 'balanced') {
+    // 2차 다중 균형 시청형 (10개 다변화 시너지 세트)
     sampleData = [
       { ch: 'KBS 뉴스', major: '정치', sub: '행정', kw: '정책, 정부, 입법' },
       { ch: '3프로TV', major: '경제', sub: '금융', kw: '금리, 주식, 환율, 연준' },
       { ch: 'SBS 뉴스', major: '사회', sub: '환경', kw: '기후변화, 탄소배출, 이상기후' },
       { ch: '슈카월드', major: '생활/문화', sub: '생활문화일반', kw: '트렌드, 문화, 산업, 역사' },
-      { ch: '지식해적단', major: '세계', sub: '국제일반', kw: '역사, 세계사, 전쟁, 무역, 영토' }
+      { ch: '지식해적단', major: '세계', sub: '국제일반', kw: '역사, 세계사, 전쟁, 무역, 영토' },
+      { ch: 'EBS 명강', major: '사회', sub: '교육', kw: '인문학, 철학, 강연, 배움, 고전' },
+      { ch: '안될과학 Unstable', major: 'IT/과학', sub: '과학일반', kw: '물리학, 우주탐사, 신소재' },
+      { ch: '딩고 뮤직', major: '엔터테인먼트', sub: '음악', kw: '라이브, 세로라이브, 명창, 컬래버' },
+      { ch: '네이버 부동산TV', major: '경제', sub: '부동산', kw: '부동산 시장, 전세, 아파트, 청약 정보' },
+      { ch: '엠스플 뉴스', major: '스포츠', sub: '야구', kw: '메이저리그, 야구, 순위 경쟁, 국가대표' }
     ];
     selectRound(2);
   }
 
+  // 리스트 초기화 후 10가지 데이터 주입
   rows = [];
   sampleData.forEach(d => {
     const id = Date.now() + Math.random();
@@ -1238,7 +1275,7 @@ function clearAll() {
       if (studentNameInput) studentNameInput.value = '';
       
       rows = [];
-      for (let i = 0; i < 4; i++) addRow();
+      for (let i = 0; i < 10; i++) addRow();
       
       document.getElementById('sResult1Content').innerHTML = `<div class="card"><div class="empty-msg">아직 1차 분석 데이터가 존재하지 않습니다.</div></div>`;
       document.getElementById('sResult2Content').innerHTML = `<div class="card"><div class="empty-msg">아직 2차 분석 데이터가 등록되지 않았습니다.</div></div>`;
@@ -1635,8 +1672,8 @@ function renderTeacherContent() {
   }
 }
 
-/* 초기화 시 기본적으로 수동 4개 행 세팅 */
-for (let i = 0; i < 4; i++) addRow();
+/* 초기화 시 기본적으로 수동 10개 행 세팅 */
+for (let i = 0; i < 10; i++) addRow();
 </script>
 </body>
 </html>
